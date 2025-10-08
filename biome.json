@@ -22,5 +22,19 @@
       "!**/.source"
     ]
   },
-  "extends": ["ultracite"]
+  "extends": ["ultracite"],
+  "linter": {
+    "rules": {
+      "performance": {
+        "noNamespaceImport": "off"
+      }
+    }
+  },
+  "formatter": {
+    "enabled": true,
+    "lineWidth": 120,
+    "indentWidth": 4,
+    "indentStyle": "tab",
+    "lineEnding": "lf"
+  }
 }

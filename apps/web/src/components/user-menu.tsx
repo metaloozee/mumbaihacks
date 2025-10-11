@@ -1,3 +1,4 @@
+import { User } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
@@ -9,6 +10,7 @@ import {
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { authClient } from "@/lib/auth-client";
+import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { Button } from "./ui/button";
 import { Skeleton } from "./ui/skeleton";
 
@@ -17,13 +19,16 @@ export default function UserMenu() {
 	const { data: session, isPending } = authClient.useSession();
 
 	if (isPending) {
-		return <Skeleton className="h-9 w-24" />;
+		return <Skeleton className="size-9 rounded-full" />;
 	}
 
 	if (!session) {
 		return (
-			<Button asChild variant="outline">
-				<Link href="/login">Sign In</Link>
+			<Button asChild size="icon" variant="outline">
+				<Link href="/login">
+					<User className="size-5" />
+					<span className="sr-only">Sign in</span>
+				</Link>
 			</Button>
 		);
 	}
@@ -31,13 +36,30 @@ export default function UserMenu() {
 	return (
 		<DropdownMenu>
 			<DropdownMenuTrigger asChild>
-				<Button variant="outline">{session.user.name}</Button>
+				<Button className="rounded-full" size="icon" variant="outline">
+					<Avatar>
+						<AvatarImage alt={session.user.name ?? ""} src={session.user.image ?? ""} />
+						<AvatarFallback>
+							<User className="size-5" />
+						</AvatarFallback>
+					</Avatar>
+
+					<span className="sr-only">Open user menu</span>
+				</Button>
 			</DropdownMenuTrigger>
-			<DropdownMenuContent className="bg-card">
-				<DropdownMenuLabel>My Account</DropdownMenuLabel>
+			<DropdownMenuContent>
+				<DropdownMenuLabel>
+					<div className="flex min-w-[12rem] flex-col gap-0.5">
+						<span className="font-medium text-sm">{session.user.name}</span>
+						<span className="text-muted-foreground text-xs">{session.user.email}</span>
+					</div>
+				</DropdownMenuLabel>
 				<DropdownMenuSeparator />
-				<DropdownMenuItem>{session.user.email}</DropdownMenuItem>
 				<DropdownMenuItem asChild>
+					<Link href="/dashboard">Dashboard</Link>
+				</DropdownMenuItem>
+				<DropdownMenuSeparator />
+				<DropdownMenuItem>
 					<Button
 						className="w-full"
 						onClick={() => {
@@ -49,9 +71,9 @@ export default function UserMenu() {
 								},
 							});
 						}}
-						variant="destructive"
+						variant={"destructive"}
 					>
-						Sign Out
+						Sign out
 					</Button>
 				</DropdownMenuItem>
 			</DropdownMenuContent>

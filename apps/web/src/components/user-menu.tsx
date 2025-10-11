@@ -59,22 +59,19 @@ export default function UserMenu() {
 					<Link href="/dashboard">Dashboard</Link>
 				</DropdownMenuItem>
 				<DropdownMenuSeparator />
-				<DropdownMenuItem>
-					<Button
-						className="w-full"
-						onClick={() => {
-							authClient.signOut({
-								fetchOptions: {
-									onSuccess: () => {
-										router.push("/");
-									},
+				<DropdownMenuItem
+					className="cursor-pointer text-red-500 focus:text-red-500"
+					onClick={() => {
+						authClient.signOut({
+							fetchOptions: {
+								onSuccess: () => {
+									router.push("/");
 								},
-							});
-						}}
-						variant={"destructive"}
-					>
-						Sign out
-					</Button>
+							},
+						});
+					}}
+				>
+					Sign out
 				</DropdownMenuItem>
 			</DropdownMenuContent>
 		</DropdownMenu>

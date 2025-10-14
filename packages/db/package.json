@@ -27,10 +27,10 @@
     "typescript": "^5"
   },
   "dependencies": {
-    "drizzle-orm": "^0.44.2",
     "@neondatabase/serverless": "^1.0.1",
-    "ws": "^8.18.3",
     "dotenv": "catalog:",
+    "drizzle-orm": "^0.44.2",
+    "ws": "^8.18.3",
     "zod": "catalog:"
   }
 }

@@ -1,0 +1,142 @@
+"use client";
+
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+
+type PrescriptionFormData = {
+	appointmentId: string;
+	medication: string;
+	dosage: string;
+	duration: string;
+	refills: number;
+	expiryDate: string;
+	instructions?: string;
+};
+
+type PrescriptionFormProps = {
+	onSubmit?: (data: PrescriptionFormData) => void;
+	onCancel?: () => void;
+	appointments?: Array<{ id: string; patientName: string; date: string }>;
+};
+
+export function PrescriptionForm({ onSubmit, onCancel, appointments = [] }: PrescriptionFormProps) {
+	const [formData, setFormData] = useState<PrescriptionFormData>({
+		appointmentId: "",
+		medication: "",
+		dosage: "",
+		duration: "",
+		refills: 0,
+		expiryDate: "",
+		instructions: "",
+	});
+
+	const handleSubmit = (e: React.FormEvent) => {
+		e.preventDefault();
+		onSubmit?.(formData);
+	};
+
+	return (
+		<form className="space-y-4" onSubmit={handleSubmit}>
+			<div className="space-y-2">
+				<Label htmlFor="appointment">Appointment</Label>
+				<Select
+					onValueChange={(value) => setFormData({ ...formData, appointmentId: value })}
+					value={formData.appointmentId}
+				>
+					<SelectTrigger id="appointment">
+						<SelectValue placeholder="Select appointment" />
+					</SelectTrigger>
+					<SelectContent>
+						{appointments.map((appointment) => (
+							<SelectItem key={appointment.id} value={appointment.id}>
+								{appointment.patientName} - {appointment.date}
+							</SelectItem>
+						))}
+					</SelectContent>
+				</Select>
+			</div>
+
+			<div className="grid grid-cols-2 gap-4">
+				<div className="space-y-2">
+					<Label htmlFor="medication">Medication</Label>
+					<Input
+						id="medication"
+						onChange={(e) => setFormData({ ...formData, medication: e.target.value })}
+						placeholder="Medication name"
+						required
+						value={formData.medication}
+					/>
+				</div>
+
+				<div className="space-y-2">
+					<Label htmlFor="dosage">Dosage</Label>
+					<Input
+						id="dosage"
+						onChange={(e) => setFormData({ ...formData, dosage: e.target.value })}
+						placeholder="e.g., 500mg"
+						required
+						value={formData.dosage}
+					/>
+				</div>
+			</div>
+
+			<div className="grid grid-cols-2 gap-4">
+				<div className="space-y-2">
+					<Label htmlFor="duration">Duration</Label>
+					<Input
+						id="duration"
+						onChange={(e) => setFormData({ ...formData, duration: e.target.value })}
+						placeholder="e.g., 7 days"
+						required
+						value={formData.duration}
+					/>
+				</div>
+
+				<div className="space-y-2">
+					<Label htmlFor="refills">Refills</Label>
+					<Input
+						id="refills"
+						min="0"
+						onChange={(e) => setFormData({ ...formData, refills: Number(e.target.value) })}
+						required
+						type="number"
+						value={formData.refills}
+					/>
+				</div>
+			</div>
+
+			<div className="space-y-2">
+				<Label htmlFor="expiryDate">Expiry Date</Label>
+				<Input
+					id="expiryDate"
+					onChange={(e) => setFormData({ ...formData, expiryDate: e.target.value })}
+					required
+					type="date"
+					value={formData.expiryDate}
+				/>
+			</div>
+
+			<div className="space-y-2">
+				<Label htmlFor="instructions">Instructions (Optional)</Label>
+				<Input
+					id="instructions"
+					onChange={(e) => setFormData({ ...formData, instructions: e.target.value })}
+					placeholder="e.g., Take with food"
+					value={formData.instructions}
+				/>
+			</div>
+
+			<div className="flex justify-end space-x-2">
+				{onCancel && (
+					<Button onClick={onCancel} type="button" variant="outline">
+						Cancel
+					</Button>
+				)}
+				<Button type="submit">Create Prescription</Button>
+			</div>
+		</form>
+	);
+}

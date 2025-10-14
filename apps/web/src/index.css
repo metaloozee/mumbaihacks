@@ -217,9 +217,33 @@ body {
 @layer base {
 	* {
 		@apply border-border outline-ring/50;
+
+		scrollbar-width: thin;
+		scrollbar-color: var(--border) transparent;
 	}
 	body {
 		@apply bg-background text-foreground;
 		letter-spacing: var(--tracking-normal);
+	}
+}
+
+/* Custom Scrollbar Styling  */
+::-webkit-scrollbar {
+	width: 8px;
+}
+::-webkit-scrollbar-track {
+	width: 10px;
+	margin-block: 0.25rem;
+	background: var(--background);
+}
+::-webkit-scrollbar-thumb {
+	border-radius: 100vw;
+	background: color-mix(in oklab, var(--primary) 25%, transparent);
+	transition: background 0.15s ease-in-out;
+	&:hover {
+		background: color-mix(in oklab, var(--primary) 30%, transparent);
+	}
+	&:active {
+		background: color-mix(in oklab, var(--primary) 50%, transparent);
 	}
 }

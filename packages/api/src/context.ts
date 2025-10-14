@@ -1,4 +1,5 @@
 import { auth } from "@mumbaihacks/auth";
+import { db } from "@mumbaihacks/db";
 import type { NextRequest } from "next/server";
 
 export async function createContext(req: NextRequest) {
@@ -7,6 +8,7 @@ export async function createContext(req: NextRequest) {
 	});
 	return {
 		session,
+		db,
 	};
 }
 

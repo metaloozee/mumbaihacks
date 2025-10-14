@@ -81,7 +81,7 @@ export const medicalRecordsRouter = router({
 			if (userRole !== "clinician" && userRole !== "admin") {
 				throw new TRPCError({
 					code: "FORBIDDEN",
-					message: "Only clinicians can create medical records",
+					message: "Only clinicians and admins can create medical records",
 				});
 			}
 
@@ -107,7 +107,7 @@ export const medicalRecordsRouter = router({
 			if (userRole !== "clinician" && userRole !== "admin") {
 				throw new TRPCError({
 					code: "FORBIDDEN",
-					message: "Only clinicians can update medical records",
+					message: "Only clinicians and admins can update medical records",
 				});
 			}
 

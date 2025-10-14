@@ -46,11 +46,14 @@ export default function AdminUsersPage() {
 					<Avatar>
 						<AvatarImage alt={row.original.name} src={row.original.image} />
 						<AvatarFallback>
-							{row.original.name
-								.split(" ")
-								.map((n) => n[0])
-								.join("")
-								.toUpperCase()}
+							<AvatarFallback>
+								{row.original.name
+									.split(" ")
+									.filter((n) => n.length > 0)
+									.map((n) => n[0])
+									.join("")
+									.toUpperCase()}
+							</AvatarFallback>
 						</AvatarFallback>
 					</Avatar>
 					<div>

@@ -7,6 +7,7 @@ import { DashboardBreadcrumb } from "@/components/dashboard/dashboard-breadcrumb
 import { StatsCard } from "@/components/dashboard/stats-card";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { formatDate, formatDateTime } from "@/lib/date-utils";
 
 const UPCOMING_APPOINTMENTS_LIMIT = 3;
 const ACTIVE_PRESCRIPTIONS_LIMIT = 3;
@@ -50,7 +51,7 @@ export default async function PatientDashboardPage() {
 			<DashboardBreadcrumb items={[{ label: "Dashboard", href: "/dashboard" }, { label: "Patient" }]} />
 
 			<div>
-				<h1 className="font-bold text-3xl tracking-tight">Welcome back, {session.user.name}</h1>
+				<h1 className="font-bold text-3xl tracking-tight">Welcome back, {session.user.name ?? "User"}</h1>
 				<p className="mt-2 text-muted-foreground">Your health dashboard overview</p>
 			</div>
 
@@ -98,10 +99,7 @@ export default async function PatientDashboardPage() {
 										<div>
 											<p className="font-medium">{appointment.clinicianName}</p>
 											<p className="text-muted-foreground text-sm">
-												{new Date(appointment.scheduledAt).toLocaleString("en-US", {
-													dateStyle: "medium",
-													timeStyle: "short",
-												})}
+												{formatDateTime(appointment.scheduledAt)}
 											</p>
 										</div>
 										<Badge>{appointment.status}</Badge>
@@ -135,7 +133,7 @@ export default async function PatientDashboardPage() {
 											<p className="text-muted-foreground text-sm">{prescription.dosage}</p>
 										</div>
 										<p className="text-muted-foreground text-xs">
-											Expires: {new Date(prescription.expiryDate).toLocaleDateString()}
+											Expires: {formatDate(prescription.expiryDate)}
 										</p>
 									</div>
 								))}

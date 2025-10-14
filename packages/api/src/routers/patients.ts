@@ -115,13 +115,13 @@ export const patientsRouter = router({
 				patientId: z.string(),
 			})
 		)
-		.mutation(({ ctx }) => {
+		.mutation(({ ctx, input }) => {
 			const userRole = ctx.session.user.role;
 
 			if (userRole !== "clinician" && userRole !== "admin") {
 				throw new TRPCError({
 					code: "FORBIDDEN",
-					message: "Only clinicians can add patients",
+					message: "Only clinicians and admins can add patients",
 				});
 			}
 

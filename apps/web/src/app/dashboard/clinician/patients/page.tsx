@@ -22,6 +22,8 @@ type PatientRecord = {
 	createdAt: string;
 };
 
+const WHITESPACE_REGEX = /\s+/;
+
 export default function ClinicianPatientsPage() {
 	const [searchQuery, setSearchQuery] = useState("");
 
@@ -40,8 +42,10 @@ export default function ClinicianPatientsPage() {
 						<AvatarImage alt={row.original.patient.name} src={row.original.patient.image} />
 						<AvatarFallback>
 							{row.original.patient.name
-								.split(" ")
-								.map((n) => n[0])
+								.trim()
+								.split(WHITESPACE_REGEX)
+								.filter((n) => n.length > 0)
+								.map((n) => n.charAt(0))
 								.join("")
 								.toUpperCase()}
 						</AvatarFallback>
@@ -58,6 +62,9 @@ export default function ClinicianPatientsPage() {
 			header: "Patient Since",
 			cell: ({ getValue }) => {
 				const date = new Date(getValue() as string);
+				if (Number.isNaN(date.getTime())) {
+					return "Invalid date";
+				}
 				return date.toLocaleDateString("en-US", {
 					year: "numeric",
 					month: "long",

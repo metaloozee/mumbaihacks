@@ -37,6 +37,9 @@ export default function ClinicianAppointmentsPage() {
 			header: "Date & Time",
 			cell: ({ getValue }) => {
 				const date = new Date(getValue() as string);
+				if (Number.isNaN(date.getTime())) {
+					return <span className="text-destructive">Invalid date</span>;
+				}
 				return date.toLocaleString("en-US", {
 					dateStyle: "medium",
 					timeStyle: "short",

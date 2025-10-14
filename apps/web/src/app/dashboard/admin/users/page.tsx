@@ -11,7 +11,6 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { getUserRoleVariant } from "@/lib/badge-variants";
 
 type User = {
 	id: string;
@@ -73,7 +72,7 @@ export default function AdminUsersPage() {
 			header: "Role",
 			cell: ({ getValue }) => {
 				const role = getValue() as string;
-				return <Badge variant={getUserRoleVariant(role)}>{role.charAt(0).toUpperCase() + role.slice(1)}</Badge>;
+				return <Badge>{role.charAt(0).toUpperCase() + role.slice(1)}</Badge>;
 			},
 		},
 		{

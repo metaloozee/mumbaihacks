@@ -6,7 +6,6 @@ import Link from "next/link";
 import { DataTable } from "@/components/dashboard/data-table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { getAppointmentStatusVariant } from "@/lib/badge-variants";
 
 type Appointment = {
 	id: string;
@@ -41,7 +40,7 @@ const appointmentColumns: ColumnDef<Appointment>[] = [
 		header: "Status",
 		cell: ({ getValue }) => {
 			const status = getValue() as string;
-			return <Badge variant={getAppointmentStatusVariant(status)}>{status}</Badge>;
+			return <Badge>{status}</Badge>;
 		},
 	},
 	{

@@ -9,7 +9,6 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { getAppointmentStatusVariant } from "@/lib/badge-variants";
 
 type Appointment = {
 	id: string;
@@ -49,11 +48,7 @@ export default function PatientAppointmentsPage() {
 			header: "Status",
 			cell: ({ getValue }) => {
 				const status = getValue() as string;
-				return (
-					<Badge variant={getAppointmentStatusVariant(status)}>
-						{status.charAt(0).toUpperCase() + status.slice(1)}
-					</Badge>
-				);
+				return <Badge>{status.charAt(0).toUpperCase() + status.slice(1)}</Badge>;
 			},
 		},
 		{

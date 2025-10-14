@@ -31,6 +31,7 @@ export function DashboardBreadcrumb({ items }: DashboardBreadcrumbProps) {
 									<BreadcrumbPage>{item.label}</BreadcrumbPage>
 								) : (
 									<BreadcrumbLink asChild>
+										{/* @ts-ignore */}
 										<Link href={item.href}>{item.label}</Link>
 									</BreadcrumbLink>
 								)}

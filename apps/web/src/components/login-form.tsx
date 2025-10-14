@@ -7,6 +7,7 @@ import { parseAsStringEnum, useQueryState } from "nuqs";
 import * as React from "react";
 import { toast } from "sonner";
 import z from "zod";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -20,6 +21,7 @@ export default function LoginForm() {
 	const router = useRouter();
 	const [mode, setMode] = useQueryState("state", parseAsStringEnum(["sign-in", "sign-up"]).withDefault("sign-in"));
 	const [loading, setLoading] = React.useState<"google" | "email" | null>(null);
+	const lastLoginMethod = authClient.getLastUsedLoginMethod();
 
 	const form = useForm({
 		defaultValues: {
@@ -137,6 +139,11 @@ export default function LoginForm() {
 				>
 					<Google />
 					{getGoogleButtonText()}
+					{lastLoginMethod === "google" && (
+						<Badge className="ml-2" variant={"outline"}>
+							Last Used
+						</Badge>
+					)}
 				</Button>
 
 				<div className="flex items-center gap-3">

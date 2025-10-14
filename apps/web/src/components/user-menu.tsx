@@ -1,4 +1,4 @@
-import { User } from "lucide-react";
+import { BriefcaseMedicalIcon, ShieldCheckIcon, User } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { authClient } from "@/lib/auth-client";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
+import { Badge } from "./ui/badge";
 import { Button } from "./ui/button";
 import { Skeleton } from "./ui/skeleton";
 
@@ -33,6 +34,16 @@ export default function UserMenu() {
 		);
 	}
 
+	const roleIcon = () => {
+		if (session.user.role === "clinician") {
+			return <BriefcaseMedicalIcon className="size-5" />;
+		}
+		if (session.user.role === "admin") {
+			return <ShieldCheckIcon className="size-5" />;
+		}
+		return <User className="size-5" />;
+	};
+
 	return (
 		<DropdownMenu>
 			<DropdownMenuTrigger asChild>
@@ -52,6 +63,9 @@ export default function UserMenu() {
 					<div className="flex min-w-[12rem] flex-col gap-0.5">
 						<span className="font-medium text-sm">{session.user.name}</span>
 						<span className="text-muted-foreground text-xs">{session.user.email}</span>
+						<Badge className="mt-2 text-xs">
+							{roleIcon()} {session.user.role}
+						</Badge>
 					</div>
 				</DropdownMenuLabel>
 				<DropdownMenuSeparator />

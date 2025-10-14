@@ -2,13 +2,24 @@ import { db } from "@mumbaihacks/db";
 import * as schema from "@mumbaihacks/db/schema/auth";
 import { type BetterAuthOptions, betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
+import { lastLoginMethod } from "better-auth/plugins";
 
 export const auth = betterAuth<BetterAuthOptions>({
+	user: {
+		additionalFields: {
+			role: {
+				type: "string",
+				defaultValue: "patient",
+				input: false,
+			},
+		},
+	},
 	database: drizzleAdapter(db, {
 		provider: "pg",
 		schema,
 	}),
 	trustedOrigins: [process.env.CORS_ORIGIN || ""],
+	plugins: [lastLoginMethod()],
 	emailAndPassword: {
 		enabled: true,
 	},

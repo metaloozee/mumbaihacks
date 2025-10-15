@@ -94,7 +94,6 @@ export const usersRouter = router({
 		return stats;
 	}),
 
-	// Skeleton for updating user role
 	updateRole: adminProcedure
 		.input(
 			z.object({
@@ -102,12 +101,30 @@ export const usersRouter = router({
 				role: z.enum(["patient", "clinician", "admin"]),
 			})
 		)
-		.mutation(() => {
-			// TODO: Implement user role update logic
-			throw new TRPCError({
-				code: "NOT_IMPLEMENTED",
-				message: "User role update not yet implemented",
-			});
+		.mutation(async ({ ctx, input }) => {
+			const targetUser = await ctx.db
+				.select({ role: user.role })
+				.from(user)
+				.where(eq(user.id, input.userId))
+				.limit(1);
+
+			if (targetUser.length === 0) {
+				throw new TRPCError({
+					code: "NOT_FOUND",
+					message: "User not found",
+				});
+			}
+
+			if (targetUser[0]?.role === "admin") {
+				throw new TRPCError({
+					code: "FORBIDDEN",
+					message: "Cannot change admin user roles",
+				});
+			}
+
+			await ctx.db.update(user).set({ role: input.role, updatedAt: new Date() }).where(eq(user.id, input.userId));
+
+			return { success: true };
 		}),
 
 	// Skeleton for deleting user

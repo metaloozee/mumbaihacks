@@ -47,8 +47,8 @@ export default function UserMenu() {
 	return (
 		<DropdownMenu>
 			<DropdownMenuTrigger asChild>
-				<Button className="rounded-full" size="icon" variant="outline">
-					<Avatar>
+				<Button size="icon" variant="outline">
+					<Avatar className="rounded-md">
 						<AvatarImage alt={session.user.name ?? ""} src={session.user.image ?? ""} />
 						<AvatarFallback>
 							<User className="size-5" />

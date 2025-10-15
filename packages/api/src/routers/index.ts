@@ -1,4 +1,4 @@
-import { protectedProcedure, publicProcedure, router } from "../index";
+import { protectedProcedure, publicProcedure, router, t } from "../index";
 import { appointmentsRouter } from "./appointments";
 import { medicalRecordsRouter } from "./medical-records";
 import { patientsRouter } from "./patients";
@@ -17,4 +17,7 @@ export const appRouter = router({
 	patients: patientsRouter,
 	users: usersRouter,
 });
+
+export const createCaller = t.createCallerFactory(appRouter);
+
 export type AppRouter = typeof appRouter;

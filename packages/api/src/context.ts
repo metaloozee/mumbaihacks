@@ -12,4 +12,14 @@ export async function createContext(req: NextRequest) {
 	};
 }
 
+export async function createServerContext(headers: Headers) {
+	const session = await auth.api.getSession({
+		headers,
+	});
+	return {
+		session,
+		db,
+	};
+}
+
 export type Context = Awaited<ReturnType<typeof createContext>>;

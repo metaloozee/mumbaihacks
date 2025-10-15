@@ -6,6 +6,7 @@ import { redirect } from "next/navigation";
 import { DashboardBreadcrumb } from "@/components/dashboard/dashboard-breadcrumb";
 import { StatsCard } from "@/components/dashboard/stats-card";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { createServerCaller } from "@/server/trpc";
 
 export default async function AdminDashboardPage() {
 	const session = await auth.api.getSession({
@@ -20,13 +21,8 @@ export default async function AdminDashboardPage() {
 		redirect("/dashboard");
 	}
 
-	// TODO: Fetch real data using tRPC
-	const stats = {
-		totalUsers: 0,
-		patients: 0,
-		clinicians: 0,
-		admins: 0,
-	};
+	const caller = await createServerCaller();
+	const stats = await caller.users.getStats();
 
 	const recentActivity: Array<{
 		id: string;
@@ -50,16 +46,26 @@ export default async function AdminDashboardPage() {
 					description="All users in the system"
 					icon={Users}
 					title="Total Users"
-					value={stats.totalUsers}
+					value={stats?.total ?? 0}
 				/>
-				<StatsCard description="Registered patients" icon={UserCheck} title="Patients" value={stats.patients} />
+				<StatsCard
+					description="Registered patients"
+					icon={UserCheck}
+					title="Patients"
+					value={stats?.patients ?? 0}
+				/>
 				<StatsCard
 					description="Healthcare providers"
 					icon={UserCog}
 					title="Clinicians"
-					value={stats.clinicians}
+					value={stats?.clinicians ?? 0}
 				/>
-				<StatsCard description="System admins" icon={Shield} title="Administrators" value={stats.admins} />
+				<StatsCard
+					description="System admins"
+					icon={Shield}
+					title="Administrators"
+					value={stats?.admins ?? 0}
+				/>
 			</div>
 
 			{/* Recent Activity */}

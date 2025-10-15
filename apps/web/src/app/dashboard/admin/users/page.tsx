@@ -1,5 +1,6 @@
 "use client";
 
+import { useQuery } from "@tanstack/react-query";
 import type { ColumnDef } from "@tanstack/react-table";
 import { Search, Users } from "lucide-react";
 import { useState } from "react";
@@ -11,26 +12,27 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { trpc } from "@/utils/trpc";
 
 type User = {
 	id: string;
 	name: string;
 	email: string;
 	role: "patient" | "clinician" | "admin";
-	image?: string;
+	image: string | null;
 	emailVerified: boolean;
 	createdAt: string;
+	updatedAt: string;
 };
 
 export default function AdminUsersPage() {
 	const [searchQuery, setSearchQuery] = useState("");
 	const [roleFilter, setRoleFilter] = useState<string>("all");
 
-	// TODO: Fetch users using tRPC
-	const users: User[] = [];
+	const { data: users } = useQuery(trpc.users.list.queryOptions());
 
 	const filteredUsers = users
-		.filter(
+		?.filter(
 			(u) =>
 				u.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
 				u.email.toLowerCase().includes(searchQuery.toLowerCase())
@@ -44,16 +46,14 @@ export default function AdminUsersPage() {
 			cell: ({ row }) => (
 				<div className="flex items-center gap-3">
 					<Avatar>
-						<AvatarImage alt={row.original.name} src={row.original.image} />
+						<AvatarImage alt={row.original.name} src={row.original.image ?? undefined} />
 						<AvatarFallback>
-							<AvatarFallback>
-								{row.original.name
-									.split(" ")
-									.filter((n) => n.length > 0)
-									.map((n) => n[0])
-									.join("")
-									.toUpperCase()}
-							</AvatarFallback>
+							{row.original.name
+								.split(" ")
+								.filter((n) => n.length > 0)
+								.map((n) => n[0])
+								.join("")
+								.toUpperCase()}
 						</AvatarFallback>
 					</Avatar>
 					<div>
@@ -153,7 +153,7 @@ export default function AdminUsersPage() {
 					</div>
 				</CardHeader>
 				<CardContent>
-					<DataTable columns={columns} data={filteredUsers} emptyMessage="No users found" />
+					<DataTable columns={columns} data={filteredUsers ?? []} emptyMessage="No users found" />
 				</CardContent>
 			</Card>
 		</div>

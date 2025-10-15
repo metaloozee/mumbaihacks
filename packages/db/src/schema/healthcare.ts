@@ -54,10 +54,10 @@ export const medicalRecord = pgTable("medical_record", {
 	id: text("id").primaryKey(),
 	patientId: text("patient_id")
 		.notNull()
-		.references(() => user.id, { onDelete: "cascade" }),
+		.references(() => user.id, { onDelete: "restrict" }),
 	clinicianId: text("clinician_id")
 		.notNull()
-		.references(() => user.id, { onDelete: "cascade" }),
+		.references(() => user.id, { onDelete: "restrict" }),
 	diagnosis: text("diagnosis").notNull(),
 	notes: text("notes"),
 	createdAt: timestamp("created_at").notNull().defaultNow(),

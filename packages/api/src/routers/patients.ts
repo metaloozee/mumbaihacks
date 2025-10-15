@@ -115,7 +115,7 @@ export const patientsRouter = router({
 				patientId: z.string(),
 			})
 		)
-		.mutation(({ ctx, input }) => {
+		.mutation(({ ctx }) => {
 			const userRole = ctx.session.user.role;
 
 			if (userRole !== "clinician" && userRole !== "admin") {

@@ -37,7 +37,11 @@ export const medicalRecordsRouter = router({
 		const userId = ctx.session.user.id;
 		const userRole = ctx.session.user.role;
 
-		const recordData = await ctx.db.select().from(medicalRecord).where(eq(medicalRecord.id, input.id)).limit(1);
+		const recordData = await ctx.db
+			.select()
+			.from(medicalRecord)
+			.where(and(eq(medicalRecord.patientId, userId), eq(medicalRecord.id, input.id)))
+			.limit(1);
 
 		if (recordData.length === 0) {
 			throw new TRPCError({

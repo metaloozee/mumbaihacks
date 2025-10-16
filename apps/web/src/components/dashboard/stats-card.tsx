@@ -1,23 +1,23 @@
-import type { LucideIcon } from "lucide-react";
+import type { ReactNode } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 type StatsCardProps = {
 	title: string;
 	value: string | number;
 	description?: string;
-	icon?: LucideIcon;
+	icon?: ReactNode;
 	trend?: {
 		value: number;
 		isPositive: boolean;
 	};
 };
 
-export function StatsCard({ title, value, description, icon: Icon, trend }: StatsCardProps) {
+export function StatsCard({ title, value, description, icon, trend }: StatsCardProps) {
 	return (
 		<Card>
 			<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
 				<CardTitle className="font-medium text-sm">{title}</CardTitle>
-				{Icon && <Icon className="h-4 w-4 text-muted-foreground" />}
+				{icon ? <span className="text-muted-foreground">{icon}</span> : null}
 			</CardHeader>
 			<CardContent>
 				<div className="font-bold text-2xl">{value}</div>

@@ -3,11 +3,12 @@
 import type { ColumnDef } from "@tanstack/react-table";
 import { Pill } from "lucide-react";
 import { useState } from "react";
-import { DashboardBreadcrumb } from "@/components/dashboard/dashboard-breadcrumb";
 import { DataTable } from "@/components/dashboard/data-table";
+import { ListCard } from "@/components/dashboard/list-card";
+import { PageHeader } from "@/components/dashboard/page-header";
+import { DashboardPageShell } from "@/components/dashboard/page-shell";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 type Prescription = {
@@ -86,47 +87,39 @@ export default function PatientPrescriptionsPage() {
 	];
 
 	return (
-		<div className="flex-1 space-y-6 p-8">
-			<DashboardBreadcrumb
-				items={[
-					{ label: "Dashboard", href: "/dashboard" },
-					{ label: "Patient", href: "/dashboard/patient" },
-					{ label: "Prescriptions" },
-				]}
-			/>
-
-			<div>
-				<h1 className="flex items-center font-bold text-3xl tracking-tight">
-					<Pill className="mr-3 h-8 w-8" />
-					My Prescriptions
-				</h1>
-				<p className="mt-2 text-muted-foreground">View your prescription history and active medications</p>
-			</div>
-
-			<Card>
-				<CardHeader>
-					<div className="flex items-center justify-between">
-						<CardTitle>All Prescriptions</CardTitle>
-						<div className="flex items-center gap-4">
-							<Select onValueChange={setStatusFilter} value={statusFilter}>
-								<SelectTrigger className="w-[180px]">
-									<SelectValue placeholder="Filter by status" />
-								</SelectTrigger>
-								<SelectContent>
-									<SelectItem value="all">All Status</SelectItem>
-									<SelectItem value="active">Active</SelectItem>
-									<SelectItem value="filled">Filled</SelectItem>
-									<SelectItem value="expired">Expired</SelectItem>
-									<SelectItem value="cancelled">Cancelled</SelectItem>
-								</SelectContent>
-							</Select>
-						</div>
-					</div>
-				</CardHeader>
-				<CardContent>
-					<DataTable columns={columns} data={filteredPrescriptions} emptyMessage="No prescriptions found" />
-				</CardContent>
-			</Card>
-		</div>
+		<DashboardPageShell
+			header={
+				<PageHeader
+					breadcrumbItems={[
+						{ label: "Dashboard", href: "/dashboard" },
+						{ label: "Patient", href: "/dashboard/patient" },
+						{ label: "Prescriptions" },
+					]}
+					description="View your prescription history and active medications"
+					icon={<Pill className="h-8 w-8" />}
+					title="My Prescriptions"
+				/>
+			}
+		>
+			<ListCard
+				actions={
+					<Select onValueChange={setStatusFilter} value={statusFilter}>
+						<SelectTrigger className="w-[180px]">
+							<SelectValue placeholder="Filter by status" />
+						</SelectTrigger>
+						<SelectContent>
+							<SelectItem value="all">All Status</SelectItem>
+							<SelectItem value="active">Active</SelectItem>
+							<SelectItem value="filled">Filled</SelectItem>
+							<SelectItem value="expired">Expired</SelectItem>
+							<SelectItem value="cancelled">Cancelled</SelectItem>
+						</SelectContent>
+					</Select>
+				}
+				title="All Prescriptions"
+			>
+				<DataTable columns={columns} data={filteredPrescriptions} emptyMessage="No prescriptions found" />
+			</ListCard>
+		</DashboardPageShell>
 	);
 }

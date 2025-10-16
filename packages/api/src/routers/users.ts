@@ -1,6 +1,7 @@
-import { user } from "@mumbaihacks/db";
+import { appointment, clinicianPatient, medicalRecord, prescription, user } from "@mumbaihacks/db";
 import { TRPCError } from "@trpc/server";
-import { eq, type SQL } from "drizzle-orm";
+import { desc, eq, or, type SQL } from "drizzle-orm";
+import { alias } from "drizzle-orm/pg-core";
 import { z } from "zod";
 import { protectedProcedure, router } from "../index";
 
@@ -126,6 +127,137 @@ export const usersRouter = router({
 
 			return { success: true };
 		}),
+
+	// Get detailed user information with relationships
+	getDetails: adminProcedure.input(z.object({ id: z.string() })).query(async ({ ctx, input }) => {
+		// Get basic user info
+		const userData = await ctx.db
+			.select({
+				id: user.id,
+				name: user.name,
+				email: user.email,
+				role: user.role,
+				image: user.image,
+				emailVerified: user.emailVerified,
+				createdAt: user.createdAt,
+				updatedAt: user.updatedAt,
+			})
+			.from(user)
+			.where(eq(user.id, input.id))
+			.limit(1);
+
+		if (userData.length === 0) {
+			throw new TRPCError({
+				code: "NOT_FOUND",
+				message: "User not found",
+			});
+		}
+
+		const userInfo = userData[0] as NonNullable<(typeof userData)[0]>;
+
+		// Get relationships based on role
+		const relationships: { clinicians?: unknown[]; patients?: unknown[] } = {};
+
+		if (userInfo.role === "clinician") {
+			// Get patients for this clinician
+			const patients = await ctx.db
+				.select({
+					id: clinicianPatient.id,
+					patientId: clinicianPatient.patientId,
+					patientName: user.name,
+					patientEmail: user.email,
+					patientImage: user.image,
+					createdAt: clinicianPatient.createdAt,
+				})
+				.from(clinicianPatient)
+				.innerJoin(user, eq(user.id, clinicianPatient.patientId))
+				.where(eq(clinicianPatient.clinicianId, input.id));
+
+			relationships.patients = patients;
+		} else if (userInfo.role === "patient") {
+			// Get clinicians for this patient
+			const clinicians = await ctx.db
+				.select({
+					id: clinicianPatient.id,
+					clinicianId: clinicianPatient.clinicianId,
+					clinicianName: user.name,
+					clinicianEmail: user.email,
+					clinicianImage: user.image,
+					createdAt: clinicianPatient.createdAt,
+				})
+				.from(clinicianPatient)
+				.innerJoin(user, eq(user.id, clinicianPatient.clinicianId))
+				.where(eq(clinicianPatient.patientId, input.id));
+
+			relationships.clinicians = clinicians;
+		}
+
+		// Get appointments (as patient or clinician)
+		const patientUser = alias(user, "patient_user");
+		const clinicianUser = alias(user, "clinician_user");
+
+		const appointments = await ctx.db
+			.select({
+				id: appointment.id,
+				patientId: appointment.patientId,
+				clinicianId: appointment.clinicianId,
+				patientName: patientUser.name,
+				clinicianName: clinicianUser.name,
+				scheduledAt: appointment.scheduledAt,
+				status: appointment.status,
+				notes: appointment.notes,
+				createdAt: appointment.createdAt,
+			})
+			.from(appointment)
+			.innerJoin(patientUser, eq(patientUser.id, appointment.patientId))
+			.innerJoin(clinicianUser, eq(clinicianUser.id, appointment.clinicianId))
+			.where(or(eq(appointment.patientId, input.id), eq(appointment.clinicianId, input.id)))
+			.limit(10)
+			.orderBy(desc(appointment.scheduledAt));
+
+		// Get medical records (as patient or clinician)
+		const records = await ctx.db
+			.select({
+				id: medicalRecord.id,
+				patientId: medicalRecord.patientId,
+				clinicianId: medicalRecord.clinicianId,
+				diagnosis: medicalRecord.diagnosis,
+				notes: medicalRecord.notes,
+				createdAt: medicalRecord.createdAt,
+			})
+			.from(medicalRecord)
+			.where(or(eq(medicalRecord.patientId, input.id), eq(medicalRecord.clinicianId, input.id)))
+			.limit(10)
+			.orderBy(desc(medicalRecord.createdAt));
+
+		// Get prescriptions (as prescriber only, since prescriptions are tied to appointments)
+		const prescriptions = await ctx.db
+			.select({
+				id: prescription.id,
+				appointmentId: prescription.appointmentId,
+				prescriberId: prescription.prescriberId,
+				medication: prescription.medication,
+				dosage: prescription.dosage,
+				duration: prescription.duration,
+				refills: prescription.refills,
+				expiryDate: prescription.expiryDate,
+				status: prescription.status,
+				instructions: prescription.instructions,
+				createdAt: prescription.createdAt,
+			})
+			.from(prescription)
+			.where(eq(prescription.prescriberId, input.id))
+			.limit(10)
+			.orderBy(desc(prescription.createdAt));
+
+		return {
+			user: userInfo,
+			relationships,
+			appointments,
+			medicalRecords: records,
+			prescriptions,
+		};
+	}),
 
 	// Skeleton for deleting user
 	delete: adminProcedure.input(z.object({ userId: z.string() })).mutation(() => {

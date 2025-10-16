@@ -7,12 +7,13 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
 import { useDebouncedCallback } from "use-debounce";
-import { DashboardBreadcrumb } from "@/components/dashboard/dashboard-breadcrumb";
 import { DataTable } from "@/components/dashboard/data-table";
+import { ListCard } from "@/components/dashboard/list-card";
+import { PageHeader } from "@/components/dashboard/page-header";
+import { DashboardPageShell } from "@/components/dashboard/page-shell";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
 	Dialog,
 	DialogContent,
@@ -52,7 +53,7 @@ export default function AdminUsersPage() {
 	const updateRoleMutation = useMutation({
 		mutationFn: ({ userId, role }: { userId: string; role: "patient" | "clinician" | "admin" }) =>
 			trpcClient.users.updateRole.mutate({ userId, role }),
-		onMutate: async ({ userId, role }) => {
+		onMutate: async ({ userId, role }: { userId: string; role: "patient" | "clinician" | "admin" }) => {
 			await queryClient.cancelQueries({ queryKey: queryOptions.queryKey });
 
 			const previousUsers = queryClient.getQueryData<User[]>(queryOptions.queryKey);
@@ -60,16 +61,20 @@ export default function AdminUsersPage() {
 			if (previousUsers) {
 				queryClient.setQueryData<User[]>(
 					queryOptions.queryKey,
-					previousUsers.map((user) => (user.id === userId ? { ...user, role } : user))
+					previousUsers.map((user: User) => (user.id === userId ? { ...user, role } : user))
 				);
 			}
 
-			return { previousUsers };
+			return { previousUsers: previousUsers ?? [] };
 		},
 		onSuccess: () => {
 			// toast.success("User role updated successfully");
 		},
-		onError: (error: Error, _variables, context) => {
+		onError: (
+			error: Error,
+			_variables: { userId: string; role: "patient" | "clinician" | "admin" },
+			context: { previousUsers: User[] } | undefined
+		) => {
 			if (context?.previousUsers) {
 				queryClient.setQueryData(queryOptions.queryKey, context.previousUsers);
 			}
@@ -86,11 +91,11 @@ export default function AdminUsersPage() {
 
 	const filteredUsers = users
 		?.filter(
-			(u) =>
+			(u: User) =>
 				u.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
 				u.email.toLowerCase().includes(searchQuery.toLowerCase())
 		)
-		.filter((u) => roleFilter === "all" || u.role === roleFilter);
+		.filter((u: User) => roleFilter === "all" || u.role === roleFilter);
 
 	const columns: ColumnDef<User>[] = [
 		{
@@ -182,78 +187,72 @@ export default function AdminUsersPage() {
 	];
 
 	return (
-		<div className="flex-1 space-y-6 p-8">
-			<DashboardBreadcrumb
-				items={[
-					{ label: "Dashboard", href: "/dashboard" },
-					{ label: "Admin", href: "/dashboard/admin" },
-					{ label: "User Management" },
-				]}
-			/>
-
-			<div>
-				<h1 className="flex items-center font-bold text-3xl tracking-tight">
-					<Users className="mr-3 h-8 w-8" />
-					User Management
-				</h1>
-				<p className="mt-2 text-muted-foreground">Manage all users in the system</p>
-			</div>
-
-			<Card>
-				<CardHeader>
-					<div className="flex items-center justify-between">
-						<CardTitle>All Users</CardTitle>
-						<div className="flex items-center gap-4">
-							<div className="relative w-64">
-								<Search className="absolute top-2.5 left-2 h-4 w-4 text-muted-foreground" />
-								<Input
-									className="pl-8"
-									onChange={(e) => setSearchQuery(e.target.value)}
-									placeholder="Search users..."
-									value={searchQuery}
-								/>
-							</div>
-							<Select onValueChange={setRoleFilter} value={roleFilter}>
-								<SelectTrigger className="w-[180px]">
-									<SelectValue placeholder="Filter by role" />
-								</SelectTrigger>
-								<SelectContent>
-									<SelectItem value="all">All Roles</SelectItem>
-									<SelectItem value="patient">Patients</SelectItem>
-									<SelectItem value="clinician">Clinicians</SelectItem>
-									<SelectItem value="admin">Admins</SelectItem>
-								</SelectContent>
-							</Select>
+		<DashboardPageShell
+			header={
+				<PageHeader
+					breadcrumbItems={[
+						{ label: "Dashboard", href: "/dashboard" },
+						{ label: "Admin", href: "/dashboard/admin" },
+						{ label: "User Management" },
+					]}
+					description="Manage all users in the system"
+					icon={<Users className="h-8 w-8" />}
+					title="User Management"
+				/>
+			}
+		>
+			<ListCard
+				actions={
+					<div className="flex items-center gap-4">
+						<div className="relative w-64">
+							<Search className="absolute top-2.5 left-2 h-4 w-4 text-muted-foreground" />
+							<Input
+								className="pl-8"
+								onChange={(e) => setSearchQuery(e.target.value)}
+								placeholder="Search users..."
+								value={searchQuery}
+							/>
 						</div>
+						<Select onValueChange={setRoleFilter} value={roleFilter}>
+							<SelectTrigger className="w-[180px]">
+								<SelectValue placeholder="Filter by role" />
+							</SelectTrigger>
+							<SelectContent>
+								<SelectItem value="all">All Roles</SelectItem>
+								<SelectItem value="patient">Patients</SelectItem>
+								<SelectItem value="clinician">Clinicians</SelectItem>
+								<SelectItem value="admin">Admins</SelectItem>
+							</SelectContent>
+						</Select>
 					</div>
-				</CardHeader>
-				<CardContent>
-					{isPending ? (
-						<div className="space-y-4">
-							{Array.from({ length: 5 }, (_, i) => `skeleton-${i}`).map((key) => (
-								<div
-									className="flex items-center gap-4 border-border border-b py-4 last:border-b-0"
-									key={key}
-								>
-									<Skeleton className="h-10 w-10 rounded-full" />
-									<div className="flex-1 space-y-2">
-										<Skeleton className="h-4 w-32" />
-										<Skeleton className="h-3 w-48" />
-									</div>
-									<Skeleton className="h-6 w-20" />
-									<Skeleton className="h-4 w-24" />
-									<div className="flex gap-2">
-										<Skeleton className="h-8 w-20" />
-										<Skeleton className="h-8 w-24" />
-									</div>
+				}
+				title="All Users"
+			>
+				{isPending ? (
+					<div className="space-y-4">
+						{Array.from({ length: 5 }, (_, i) => `skeleton-${i}`).map((key) => (
+							<div
+								className="flex items-center gap-4 border-border border-b py-4 last:border-b-0"
+								key={key}
+							>
+								<Skeleton className="h-10 w-10 rounded-full" />
+								<div className="flex-1 space-y-2">
+									<Skeleton className="h-4 w-32" />
+									<Skeleton className="h-3 w-48" />
 								</div>
-							))}
-						</div>
-					) : (
-						<DataTable columns={columns} data={filteredUsers ?? []} emptyMessage="No users found" />
-					)}
-				</CardContent>
-			</Card>
+								<Skeleton className="h-6 w-20" />
+								<Skeleton className="h-4 w-24" />
+								<div className="flex gap-2">
+									<Skeleton className="h-8 w-20" />
+									<Skeleton className="h-8 w-24" />
+								</div>
+							</div>
+						))}
+					</div>
+				) : (
+					<DataTable columns={columns} data={filteredUsers ?? []} emptyMessage="No users found" />
+				)}
+			</ListCard>
 
 			<Dialog onOpenChange={setDialogOpen} open={dialogOpen}>
 				<DialogContent>
@@ -332,6 +331,6 @@ export default function AdminUsersPage() {
 					</DialogFooter>
 				</DialogContent>
 			</Dialog>
-		</div>
+		</DashboardPageShell>
 	);
 }

@@ -4,10 +4,12 @@ import { headers } from "next/headers";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { AppointmentsTable } from "@/components/dashboard/appointments-table";
-import { DashboardBreadcrumb } from "@/components/dashboard/dashboard-breadcrumb";
+import { ListCard } from "@/components/dashboard/list-card";
+import { PageHeader } from "@/components/dashboard/page-header";
+import { DashboardPageShell } from "@/components/dashboard/page-shell";
 import { StatsCard } from "@/components/dashboard/stats-card";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 
 export default async function ClinicianDashboardPage() {
 	const session = await auth.api.getSession({
@@ -39,103 +41,98 @@ export default async function ClinicianDashboardPage() {
 	}> = [];
 
 	return (
-		<div className="flex-1 space-y-8 p-8">
-			<DashboardBreadcrumb items={[{ label: "Dashboard", href: "/dashboard" }, { label: "Clinician" }]} />
-
-			<div className="flex items-center justify-between">
-				<div>
-					<h1 className="font-bold text-3xl tracking-tight">Welcome back, {session.user.name}</h1>
-					<p className="mt-2 text-muted-foreground">Here is an overview of your practice</p>
-				</div>
-				<Link href="/dashboard/clinician/appointments">
-					<Button>
-						<Plus className="mr-2 h-4 w-4" />
-						New Appointment
-					</Button>
-				</Link>
-			</div>
-
+		<DashboardPageShell
+			header={
+				<PageHeader
+					actions={
+						<Link href="/dashboard/clinician/appointments">
+							<Button>
+								<Plus className="mr-2 h-4 w-4" />
+								New Appointment
+							</Button>
+						</Link>
+					}
+					breadcrumbItems={[{ label: "Dashboard", href: "/dashboard" }, { label: "Clinician" }]}
+					description="Here is an overview of your practice"
+					icon={<Users className="h-8 w-8" />}
+					title={`Welcome back, ${session.user.name}`}
+				/>
+			}
+		>
 			{/* Stats Cards */}
 			<div className="grid gap-4 md:grid-cols-3">
 				<StatsCard
 					description="Active patients under your care"
-					icon={Users}
+					icon={<Users className="h-4 w-4" />}
 					title="Total Patients"
 					value={stats.totalPatients}
 				/>
 				<StatsCard
 					description="Scheduled for this week"
-					icon={Calendar}
+					icon={<Calendar className="h-4 w-4" />}
 					title="Upcoming Appointments"
 					value={stats.upcomingAppointments}
 				/>
 				<StatsCard
 					description="Created this month"
-					icon={FileText}
+					icon={<FileText className="h-4 w-4" />}
 					title="Recent Records"
 					value={stats.recentRecords}
 				/>
 			</div>
 
 			{/* Recent Appointments */}
-			<Card>
-				<CardHeader className="flex flex-row items-center justify-between">
-					<CardTitle>Recent Appointments</CardTitle>
+			<ListCard
+				actions={
 					<Link href="/dashboard/clinician/appointments">
 						<Button size="sm" variant="outline">
 							View All
 						</Button>
 					</Link>
-				</CardHeader>
-				<CardContent>
-					<AppointmentsTable appointments={recentAppointments} emptyMessage="No appointments scheduled" />
-				</CardContent>
-			</Card>
+				}
+				title="Recent Appointments"
+			>
+				<AppointmentsTable appointments={recentAppointments} emptyMessage="No appointments scheduled" />
+			</ListCard>
 
 			{/* Quick Actions */}
 			<div className="grid gap-4 md:grid-cols-3">
 				<Link href="/dashboard/clinician/patients">
 					<Card className="cursor-pointer transition-colors hover:bg-muted/50">
-						<CardHeader>
-							<CardTitle className="flex items-center">
+						<div className="p-6">
+							<div className="flex items-center font-medium">
 								<Users className="mr-2 h-5 w-5" />
 								Manage Patients
-							</CardTitle>
-						</CardHeader>
-						<CardContent>
-							<p className="text-muted-foreground text-sm">View and manage your patient list</p>
-						</CardContent>
+							</div>
+							<p className="mt-2 text-muted-foreground text-sm">View and manage your patient list</p>
+						</div>
 					</Card>
 				</Link>
 
 				<Link href="/dashboard/clinician/records">
 					<Card className="cursor-pointer transition-colors hover:bg-muted/50">
-						<CardHeader>
-							<CardTitle className="flex items-center">
+						<div className="p-6">
+							<div className="flex items-center font-medium">
 								<FileText className="mr-2 h-5 w-5" />
 								Medical Records
-							</CardTitle>
-						</CardHeader>
-						<CardContent>
-							<p className="text-muted-foreground text-sm">Access and create medical records</p>
-						</CardContent>
+							</div>
+							<p className="mt-2 text-muted-foreground text-sm">Access and create medical records</p>
+						</div>
 					</Card>
 				</Link>
 
 				<Link href="/dashboard/clinician/prescriptions">
 					<Card className="cursor-pointer transition-colors hover:bg-muted/50">
-						<CardHeader>
-							<CardTitle className="flex items-center">
+						<div className="p-6">
+							<div className="flex items-center font-medium">
 								<FileText className="mr-2 h-5 w-5" />
 								Prescriptions
-							</CardTitle>
-						</CardHeader>
-						<CardContent>
-							<p className="text-muted-foreground text-sm">Manage prescriptions and medications</p>
-						</CardContent>
+							</div>
+							<p className="mt-2 text-muted-foreground text-sm">Manage prescriptions and medications</p>
+						</div>
 					</Card>
 				</Link>
 			</div>
-		</div>
+		</DashboardPageShell>
 	);
 }

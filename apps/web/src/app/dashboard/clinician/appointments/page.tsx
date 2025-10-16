@@ -3,11 +3,12 @@
 import type { ColumnDef } from "@tanstack/react-table";
 import { Calendar, Plus } from "lucide-react";
 import { useState } from "react";
-import { DashboardBreadcrumb } from "@/components/dashboard/dashboard-breadcrumb";
 import { DataTable } from "@/components/dashboard/data-table";
+import { ListCard } from "@/components/dashboard/list-card";
+import { PageHeader } from "@/components/dashboard/page-header";
+import { DashboardPageShell } from "@/components/dashboard/page-shell";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 type Appointment = {
@@ -81,53 +82,45 @@ export default function ClinicianAppointmentsPage() {
 	];
 
 	return (
-		<div className="flex-1 space-y-6 p-8">
-			<DashboardBreadcrumb
-				items={[
-					{ label: "Dashboard", href: "/dashboard" },
-					{ label: "Clinician", href: "/dashboard/clinician" },
-					{ label: "Appointments" },
-				]}
-			/>
-
-			<div className="flex items-center justify-between">
-				<div>
-					<h1 className="flex items-center font-bold text-3xl tracking-tight">
-						<Calendar className="mr-3 h-8 w-8" />
-						Appointments
-					</h1>
-					<p className="mt-2 text-muted-foreground">Manage your patient appointments</p>
-				</div>
-				<Button disabled>
-					<Plus className="mr-2 h-4 w-4" />
-					New Appointment
-				</Button>
-			</div>
-
-			<Card>
-				<CardHeader>
-					<div className="flex items-center justify-between">
-						<CardTitle>All Appointments</CardTitle>
-						<div className="flex items-center gap-4">
-							<Select onValueChange={setStatusFilter} value={statusFilter}>
-								<SelectTrigger className="w-[180px]">
-									<SelectValue placeholder="Filter by status" />
-								</SelectTrigger>
-								<SelectContent>
-									<SelectItem value="all">All Status</SelectItem>
-									<SelectItem value="pending">Pending</SelectItem>
-									<SelectItem value="confirmed">Confirmed</SelectItem>
-									<SelectItem value="completed">Completed</SelectItem>
-									<SelectItem value="cancelled">Cancelled</SelectItem>
-								</SelectContent>
-							</Select>
-						</div>
-					</div>
-				</CardHeader>
-				<CardContent>
-					<DataTable columns={columns} data={filteredAppointments} emptyMessage="No appointments found" />
-				</CardContent>
-			</Card>
-		</div>
+		<DashboardPageShell
+			header={
+				<PageHeader
+					actions={
+						<Button disabled>
+							<Plus className="mr-2 h-4 w-4" />
+							New Appointment
+						</Button>
+					}
+					breadcrumbItems={[
+						{ label: "Dashboard", href: "/dashboard" },
+						{ label: "Clinician", href: "/dashboard/clinician" },
+						{ label: "Appointments" },
+					]}
+					description="Manage your patient appointments"
+					icon={<Calendar className="h-8 w-8" />}
+					title="Appointments"
+				/>
+			}
+		>
+			<ListCard
+				actions={
+					<Select onValueChange={setStatusFilter} value={statusFilter}>
+						<SelectTrigger className="w-[180px]">
+							<SelectValue placeholder="Filter by status" />
+						</SelectTrigger>
+						<SelectContent>
+							<SelectItem value="all">All Status</SelectItem>
+							<SelectItem value="pending">Pending</SelectItem>
+							<SelectItem value="confirmed">Confirmed</SelectItem>
+							<SelectItem value="completed">Completed</SelectItem>
+							<SelectItem value="cancelled">Cancelled</SelectItem>
+						</SelectContent>
+					</Select>
+				}
+				title="All Appointments"
+			>
+				<DataTable columns={columns} data={filteredAppointments} emptyMessage="No appointments found" />
+			</ListCard>
+		</DashboardPageShell>
 	);
 }

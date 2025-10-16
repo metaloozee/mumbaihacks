@@ -3,9 +3,11 @@ import { Shield, UserCheck, UserCog, Users } from "lucide-react";
 import { headers } from "next/headers";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { DashboardBreadcrumb } from "@/components/dashboard/dashboard-breadcrumb";
+import { ListCard } from "@/components/dashboard/list-card";
+import { PageHeader } from "@/components/dashboard/page-header";
+import { DashboardPageShell } from "@/components/dashboard/page-shell";
 import { StatsCard } from "@/components/dashboard/stats-card";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 import { createServerCaller } from "@/server/trpc";
 
 export default async function AdminDashboardPage() {
@@ -32,99 +34,92 @@ export default async function AdminDashboardPage() {
 	}> = [];
 
 	return (
-		<div className="flex-1 space-y-8 p-8">
-			<DashboardBreadcrumb items={[{ label: "Dashboard", href: "/dashboard" }, { label: "Admin" }]} />
-
-			<div>
-				<h1 className="font-bold text-3xl tracking-tight">Admin Dashboard</h1>
-				<p className="mt-2 text-muted-foreground">System overview and management</p>
-			</div>
-
+		<DashboardPageShell
+			header={
+				<PageHeader
+					breadcrumbItems={[{ label: "Dashboard", href: "/dashboard" }, { label: "Admin" }]}
+					description="System overview and management"
+					icon={<Users className="h-8 w-8" />}
+					title="Admin Dashboard"
+				/>
+			}
+		>
 			{/* Stats Cards */}
 			<div className="grid gap-4 md:grid-cols-4">
 				<StatsCard
 					description="All users in the system"
-					icon={Users}
+					icon={<Users className="h-4 w-4" />}
 					title="Total Users"
 					value={stats?.total ?? 0}
 				/>
 				<StatsCard
 					description="Registered patients"
-					icon={UserCheck}
+					icon={<UserCheck className="h-4 w-4" />}
 					title="Patients"
 					value={stats?.patients ?? 0}
 				/>
 				<StatsCard
 					description="Healthcare providers"
-					icon={UserCog}
+					icon={<UserCog className="h-4 w-4" />}
 					title="Clinicians"
 					value={stats?.clinicians ?? 0}
 				/>
 				<StatsCard
 					description="System admins"
-					icon={Shield}
+					icon={<Shield className="h-4 w-4" />}
 					title="Administrators"
 					value={stats?.admins ?? 0}
 				/>
 			</div>
 
 			{/* Recent Activity */}
-			<Card>
-				<CardHeader>
-					<CardTitle>Recent Activity</CardTitle>
-				</CardHeader>
-				<CardContent>
-					{recentActivity.length === 0 ? (
-						<div className="py-6 text-center text-muted-foreground">No recent activity</div>
-					) : (
-						<div className="space-y-4">
-							{recentActivity.map((activity) => (
-								<div
-									className="flex items-center justify-between border-b pb-3 last:border-0"
-									key={activity.id}
-								>
-									<div>
-										<p className="font-medium">{activity.action}</p>
-										<p className="text-muted-foreground text-sm">{activity.user}</p>
-									</div>
-									<p className="text-muted-foreground text-xs">
-										{new Date(activity.timestamp).toLocaleString()}
-									</p>
+			<ListCard title="Recent Activity">
+				{recentActivity.length === 0 ? (
+					<div className="py-6 text-center text-muted-foreground">No recent activity</div>
+				) : (
+					<div className="space-y-4">
+						{recentActivity.map((activity) => (
+							<div
+								className="flex items-center justify-between border-b pb-3 last:border-0"
+								key={activity.id}
+							>
+								<div>
+									<p className="font-medium">{activity.action}</p>
+									<p className="text-muted-foreground text-sm">{activity.user}</p>
 								</div>
-							))}
-						</div>
-					)}
-				</CardContent>
-			</Card>
+								<p className="text-muted-foreground text-xs">
+									{new Date(activity.timestamp).toLocaleString()}
+								</p>
+							</div>
+						))}
+					</div>
+				)}
+			</ListCard>
 
 			{/* Quick Actions */}
 			<div className="grid gap-4 md:grid-cols-2">
 				<Link href="/dashboard/admin/users">
 					<Card className="cursor-pointer transition-colors hover:bg-muted/50">
-						<CardHeader>
-							<CardTitle className="flex items-center">
+						<div className="p-6">
+							<div className="flex items-center font-medium">
 								<Users className="mr-2 h-5 w-5" />
 								User Management
-							</CardTitle>
-						</CardHeader>
-						<CardContent>
-							<p className="text-muted-foreground text-sm">Manage users, roles, and permissions</p>
-						</CardContent>
+							</div>
+							<p className="mt-2 text-muted-foreground text-sm">Manage users, roles, and permissions</p>
+						</div>
 					</Card>
 				</Link>
 
 				<Card className="cursor-pointer opacity-50 transition-colors hover:bg-muted/50">
-					<CardHeader>
-						<CardTitle className="flex items-center">
+					<div className="p-6">
+						<div className="flex items-center font-medium">
 							<Shield className="mr-2 h-5 w-5" />
 							System Settings
-						</CardTitle>
-					</CardHeader>
-					<CardContent>
-						<p className="text-muted-foreground text-sm">Configure system-wide settings</p>
-					</CardContent>
+						</div>
+						<p className="mt-2 text-muted-foreground text-sm">Configure system-wide settings</p>
+					</div>
 				</Card>
 			</div>
-		</div>
+		</DashboardPageShell>
 	);
 }

@@ -3,11 +3,12 @@
 import type { ColumnDef } from "@tanstack/react-table";
 import { Plus, Search, Users } from "lucide-react";
 import { useState } from "react";
-import { DashboardBreadcrumb } from "@/components/dashboard/dashboard-breadcrumb";
 import { DataTable } from "@/components/dashboard/data-table";
+import { ListCard } from "@/components/dashboard/list-card";
+import { PageHeader } from "@/components/dashboard/page-header";
+import { DashboardPageShell } from "@/components/dashboard/page-shell";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 
 type PatientRecord = {
@@ -89,52 +90,46 @@ export default function ClinicianPatientsPage() {
 	];
 
 	return (
-		<div className="flex-1 space-y-6 p-8">
-			<DashboardBreadcrumb
-				items={[
-					{ label: "Dashboard", href: "/dashboard" },
-					{ label: "Clinician", href: "/dashboard/clinician" },
-					{ label: "Patients" },
-				]}
-			/>
-
-			<div className="flex items-center justify-between">
-				<div>
-					<h1 className="flex items-center font-bold text-3xl tracking-tight">
-						<Users className="mr-3 h-8 w-8" />
-						My Patients
-					</h1>
-					<p className="mt-2 text-muted-foreground">Manage your patient roster</p>
-				</div>
-				<Button disabled>
-					<Plus className="mr-2 h-4 w-4" />
-					Add Patient
-				</Button>
-			</div>
-
-			<Card>
-				<CardHeader>
-					<div className="flex items-center justify-between">
-						<CardTitle>All Patients</CardTitle>
-						<div className="relative w-64">
-							<Search className="absolute top-2.5 left-2 h-4 w-4 text-muted-foreground" />
-							<Input
-								className="pl-8"
-								onChange={(e) => setSearchQuery(e.target.value)}
-								placeholder="Search patients..."
-								value={searchQuery}
-							/>
-						</div>
+		<DashboardPageShell
+			header={
+				<PageHeader
+					actions={
+						<Button disabled>
+							<Plus className="mr-2 h-4 w-4" />
+							Add Patient
+						</Button>
+					}
+					breadcrumbItems={[
+						{ label: "Dashboard", href: "/dashboard" },
+						{ label: "Clinician", href: "/dashboard/clinician" },
+						{ label: "Patients" },
+					]}
+					description="Manage your patient roster"
+					icon={<Users className="h-8 w-8" />}
+					title="My Patients"
+				/>
+			}
+		>
+			<ListCard
+				actions={
+					<div className="relative w-64">
+						<Search className="absolute top-2.5 left-2 h-4 w-4 text-muted-foreground" />
+						<Input
+							className="pl-8"
+							onChange={(e) => setSearchQuery(e.target.value)}
+							placeholder="Search patients..."
+							value={searchQuery}
+						/>
 					</div>
-				</CardHeader>
-				<CardContent>
-					<DataTable
-						columns={columns}
-						data={filteredPatients}
-						emptyMessage="No patients found. Add your first patient to get started."
-					/>
-				</CardContent>
-			</Card>
-		</div>
+				}
+				title="All Patients"
+			>
+				<DataTable
+					columns={columns}
+					data={filteredPatients}
+					emptyMessage="No patients found. Add your first patient to get started."
+				/>
+			</ListCard>
+		</DashboardPageShell>
 	);
 }

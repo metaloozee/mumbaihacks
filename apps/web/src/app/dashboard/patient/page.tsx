@@ -3,10 +3,12 @@ import { Calendar, FileText, Pill } from "lucide-react";
 import { headers } from "next/headers";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { DashboardBreadcrumb } from "@/components/dashboard/dashboard-breadcrumb";
+import { ListCard } from "@/components/dashboard/list-card";
+import { PageHeader } from "@/components/dashboard/page-header";
+import { DashboardPageShell } from "@/components/dashboard/page-shell";
 import { StatsCard } from "@/components/dashboard/stats-card";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 import { formatDate, formatDateTime } from "@/lib/date-utils";
 
 const UPCOMING_APPOINTMENTS_LIMIT = 3;
@@ -47,31 +49,33 @@ export default async function PatientDashboardPage() {
 	}> = [];
 
 	return (
-		<div className="flex-1 space-y-8 p-8">
-			<DashboardBreadcrumb items={[{ label: "Dashboard", href: "/dashboard" }, { label: "Patient" }]} />
-
-			<div>
-				<h1 className="font-bold text-3xl tracking-tight">Welcome back, {session.user.name ?? "User"}</h1>
-				<p className="mt-2 text-muted-foreground">Your health dashboard overview</p>
-			</div>
-
+		<DashboardPageShell
+			header={
+				<PageHeader
+					breadcrumbItems={[{ label: "Dashboard", href: "/dashboard" }, { label: "Patient" }]}
+					description="Your health dashboard overview"
+					icon={<Calendar className="h-8 w-8" />}
+					title={`Welcome back, ${session.user.name ?? "User"}`}
+				/>
+			}
+		>
 			{/* Stats Cards */}
 			<div className="grid gap-4 md:grid-cols-3">
 				<StatsCard
 					description="Scheduled appointments"
-					icon={Calendar}
+					icon={<Calendar className="h-4 w-4" />}
 					title="Upcoming Appointments"
 					value={stats.upcomingAppointments}
 				/>
 				<StatsCard
 					description="Total records"
-					icon={FileText}
+					icon={<FileText className="h-4 w-4" />}
 					title="Medical Records"
 					value={stats.medicalRecords}
 				/>
 				<StatsCard
 					description="Current medications"
-					icon={Pill}
+					icon={<Pill className="h-4 w-4" />}
 					title="Active Prescriptions"
 					value={stats.activePrescriptions}
 				/>
@@ -79,114 +83,106 @@ export default async function PatientDashboardPage() {
 
 			<div className="grid gap-6 md:grid-cols-2">
 				{/* Upcoming Appointments */}
-				<Card>
-					<CardHeader className="flex flex-row items-center justify-between">
-						<CardTitle>Upcoming Appointments</CardTitle>
+				<ListCard
+					actions={
 						<Link className="text-primary text-sm hover:underline" href="/dashboard/patient/appointments">
 							View all
 						</Link>
-					</CardHeader>
-					<CardContent>
-						{upcomingAppointments.length === 0 ? (
-							<div className="py-6 text-center text-muted-foreground">No upcoming appointments</div>
-						) : (
-							<div className="space-y-4">
-								{upcomingAppointments.slice(0, UPCOMING_APPOINTMENTS_LIMIT).map((appointment) => (
-									<div
-										className="flex items-center justify-between border-b pb-3 last:border-0"
-										key={appointment.id}
-									>
-										<div>
-											<p className="font-medium">{appointment.clinicianName}</p>
-											<p className="text-muted-foreground text-sm">
-												{formatDateTime(appointment.scheduledAt)}
-											</p>
-										</div>
-										<Badge>{appointment.status}</Badge>
+					}
+					title="Upcoming Appointments"
+				>
+					{upcomingAppointments.length === 0 ? (
+						<div className="py-6 text-center text-muted-foreground">No upcoming appointments</div>
+					) : (
+						<div className="space-y-4">
+							{upcomingAppointments.slice(0, UPCOMING_APPOINTMENTS_LIMIT).map((appointment) => (
+								<div
+									className="flex items-center justify-between border-b pb-3 last:border-0"
+									key={appointment.id}
+								>
+									<div>
+										<p className="font-medium">{appointment.clinicianName}</p>
+										<p className="text-muted-foreground text-sm">
+											{formatDateTime(appointment.scheduledAt)}
+										</p>
 									</div>
-								))}
-							</div>
-						)}
-					</CardContent>
-				</Card>
+									<Badge>{appointment.status}</Badge>
+								</div>
+							))}
+						</div>
+					)}
+				</ListCard>
 
 				{/* Active Prescriptions */}
-				<Card>
-					<CardHeader className="flex flex-row items-center justify-between">
-						<CardTitle>Active Prescriptions</CardTitle>
+				<ListCard
+					actions={
 						<Link className="text-primary text-sm hover:underline" href="/dashboard/patient/prescriptions">
 							View all
 						</Link>
-					</CardHeader>
-					<CardContent>
-						{activePrescriptions.length === 0 ? (
-							<div className="py-6 text-center text-muted-foreground">No active prescriptions</div>
-						) : (
-							<div className="space-y-4">
-								{activePrescriptions.slice(0, ACTIVE_PRESCRIPTIONS_LIMIT).map((prescription) => (
-									<div
-										className="flex items-center justify-between border-b pb-3 last:border-0"
-										key={prescription.id}
-									>
-										<div>
-											<p className="font-medium">{prescription.medication}</p>
-											<p className="text-muted-foreground text-sm">{prescription.dosage}</p>
-										</div>
-										<p className="text-muted-foreground text-xs">
-											Expires: {formatDate(prescription.expiryDate)}
-										</p>
+					}
+					title="Active Prescriptions"
+				>
+					{activePrescriptions.length === 0 ? (
+						<div className="py-6 text-center text-muted-foreground">No active prescriptions</div>
+					) : (
+						<div className="space-y-4">
+							{activePrescriptions.slice(0, ACTIVE_PRESCRIPTIONS_LIMIT).map((prescription) => (
+								<div
+									className="flex items-center justify-between border-b pb-3 last:border-0"
+									key={prescription.id}
+								>
+									<div>
+										<p className="font-medium">{prescription.medication}</p>
+										<p className="text-muted-foreground text-sm">{prescription.dosage}</p>
 									</div>
-								))}
-							</div>
-						)}
-					</CardContent>
-				</Card>
+									<p className="text-muted-foreground text-xs">
+										Expires: {formatDate(prescription.expiryDate)}
+									</p>
+								</div>
+							))}
+						</div>
+					)}
+				</ListCard>
 			</div>
 
 			{/* Quick Links */}
 			<div className="grid gap-4 md:grid-cols-3">
 				<Link href="/dashboard/patient/appointments">
 					<Card className="cursor-pointer transition-colors hover:bg-muted/50">
-						<CardHeader>
-							<CardTitle className="flex items-center">
+						<div className="p-6">
+							<div className="flex items-center font-medium">
 								<Calendar className="mr-2 h-5 w-5" />
 								My Appointments
-							</CardTitle>
-						</CardHeader>
-						<CardContent>
-							<p className="text-muted-foreground text-sm">View all your scheduled appointments</p>
-						</CardContent>
+							</div>
+							<p className="mt-2 text-muted-foreground text-sm">View all your scheduled appointments</p>
+						</div>
 					</Card>
 				</Link>
 
 				<Link href="/dashboard/patient/records">
 					<Card className="cursor-pointer transition-colors hover:bg-muted/50">
-						<CardHeader>
-							<CardTitle className="flex items-center">
+						<div className="p-6">
+							<div className="flex items-center font-medium">
 								<FileText className="mr-2 h-5 w-5" />
 								Medical Records
-							</CardTitle>
-						</CardHeader>
-						<CardContent>
-							<p className="text-muted-foreground text-sm">Access your medical history</p>
-						</CardContent>
+							</div>
+							<p className="mt-2 text-muted-foreground text-sm">Access your medical history</p>
+						</div>
 					</Card>
 				</Link>
 
 				<Link href="/dashboard/patient/prescriptions">
 					<Card className="cursor-pointer transition-colors hover:bg-muted/50">
-						<CardHeader>
-							<CardTitle className="flex items-center">
+						<div className="p-6">
+							<div className="flex items-center font-medium">
 								<Pill className="mr-2 h-5 w-5" />
 								Prescriptions
-							</CardTitle>
-						</CardHeader>
-						<CardContent>
-							<p className="text-muted-foreground text-sm">View your prescription history</p>
-						</CardContent>
+							</div>
+							<p className="mt-2 text-muted-foreground text-sm">View your prescription history</p>
+						</div>
 					</Card>
 				</Link>
 			</div>
-		</div>
+		</DashboardPageShell>
 	);
 }

@@ -27,6 +27,9 @@
     "rules": {
       "performance": {
         "noNamespaceImport": "off"
+      },
+      "nursery": {
+        "noShadow": "off"
       }
     }
   },

@@ -1,3 +1,4 @@
+/** biome-ignore-all lint/correctness/noNestedComponentDefinitions: False positive */
 "use client";
 
 import { ChevronDownIcon, ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
@@ -132,7 +133,9 @@ function CalendarDayButton({ className, day, modifiers, ...props }: React.Compon
 
 	const ref = React.useRef<HTMLButtonElement>(null);
 	React.useEffect(() => {
-		if (modifiers.focused) ref.current?.focus();
+		if (modifiers.focused) {
+			ref.current?.focus();
+		}
 	}, [modifiers.focused]);
 
 	return (

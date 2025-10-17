@@ -1,8 +1,11 @@
 "use client";
 
+import { useMutation, useQuery } from "@tanstack/react-query";
 import type { ColumnDef } from "@tanstack/react-table";
 import { Calendar, Plus } from "lucide-react";
+import Link from "next/link";
 import { useState } from "react";
+import { toast } from "sonner";
 import { DataTable } from "@/components/dashboard/data-table";
 import { ListCard } from "@/components/dashboard/list-card";
 import { PageHeader } from "@/components/dashboard/page-header";
@@ -10,34 +13,45 @@ import { DashboardPageShell } from "@/components/dashboard/page-shell";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { type RouterOutput, trpc, trpcClient } from "@/utils/trpc";
 
-type Appointment = {
-	id: string;
-	patientName: string;
-	scheduledAt: string;
-	status: "pending" | "confirmed" | "completed" | "cancelled";
-	notes?: string;
-};
+type Appointment = RouterOutput["appointments"]["list"][number];
 
 export default function ClinicianAppointmentsPage() {
 	const [statusFilter, setStatusFilter] = useState<string>("all");
 
-	// TODO: Fetch appointments using tRPC
-	const appointments: Appointment[] = [];
+	const { data: appointments, isLoading, refetch } = useQuery(trpc.appointments.list.queryOptions());
+
+	const updateAppointment = useMutation({
+		mutationFn: (data: { id: string; status: "confirmed" | "completed" | "cancelled" }) =>
+			trpcClient.appointments.update.mutate(data),
+		onSuccess: () => {
+			toast.success("Appointment updated successfully!");
+			refetch();
+		},
+		onError: (error: Error) => {
+			toast.error(error.message || "Failed to update appointment");
+		},
+	});
 
 	const filteredAppointments =
-		statusFilter === "all" ? appointments : appointments.filter((apt) => apt.status === statusFilter);
+		statusFilter === "all" ? appointments || [] : (appointments || []).filter((apt) => apt.status === statusFilter);
 
 	const columns: ColumnDef<Appointment>[] = [
 		{
 			accessorKey: "patientName",
 			header: "Patient",
+			cell: ({ getValue }) => {
+				const patientName = getValue() as string | undefined;
+				return <span className="font-medium">{patientName || "Unknown"}</span>;
+			},
 		},
 		{
 			accessorKey: "scheduledAt",
 			header: "Date & Time",
 			cell: ({ getValue }) => {
-				const date = new Date(getValue() as string);
+				const dateStr = getValue() as string;
+				const date = new Date(dateStr);
 				if (Number.isNaN(date.getTime())) {
 					return <span className="text-destructive">Invalid date</span>;
 				}
@@ -59,7 +73,7 @@ export default function ClinicianAppointmentsPage() {
 			accessorKey: "notes",
 			header: "Notes",
 			cell: ({ getValue }) => {
-				const notes = getValue() as string | undefined;
+				const notes = getValue() as string | null | undefined;
 				return <span className="text-muted-foreground text-sm">{notes || "No notes"}</span>;
 			},
 		},
@@ -68,11 +82,16 @@ export default function ClinicianAppointmentsPage() {
 			header: "Actions",
 			cell: ({ row }) => (
 				<div className="flex gap-2">
-					<Button disabled size="sm" variant="outline">
-						Edit
+					<Button asChild size="sm" variant="outline">
+						<Link href={`/dashboard/clinician/appointments/${row.original.id}`}>View</Link>
 					</Button>
 					{row.original.status === "pending" && (
-						<Button disabled size="sm" variant="default">
+						<Button
+							disabled={updateAppointment.isPending}
+							onClick={() => updateAppointment.mutate({ id: row.original.id, status: "confirmed" })}
+							size="sm"
+							variant="default"
+						>
 							Confirm
 						</Button>
 					)}
@@ -86,9 +105,11 @@ export default function ClinicianAppointmentsPage() {
 			header={
 				<PageHeader
 					actions={
-						<Button disabled>
-							<Plus className="mr-2 h-4 w-4" />
-							New Appointment
+						<Button asChild>
+							<Link href="/dashboard/clinician/appointments/new">
+								<Plus className="h-4 w-4" />
+								New Appointment
+							</Link>
 						</Button>
 					}
 					breadcrumbItems={[
@@ -119,7 +140,11 @@ export default function ClinicianAppointmentsPage() {
 				}
 				title="All Appointments"
 			>
-				<DataTable columns={columns} data={filteredAppointments} emptyMessage="No appointments found" />
+				{isLoading ? (
+					<div className="py-8 text-center text-muted-foreground">Loading appointments...</div>
+				) : (
+					<DataTable columns={columns} data={filteredAppointments} emptyMessage="No appointments found" />
+				)}
 			</ListCard>
 		</DashboardPageShell>
 	);

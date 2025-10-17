@@ -14,29 +14,12 @@ import { DashboardPageShell } from "@/components/dashboard/page-shell";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import {
-	Dialog,
-	DialogContent,
-	DialogDescription,
-	DialogFooter,
-	DialogHeader,
-	DialogTitle,
-} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
-import { queryClient, trpc, trpcClient } from "@/utils/trpc";
+import { queryClient, type RouterOutput, trpc, trpcClient } from "@/utils/trpc";
 
-type User = {
-	id: string;
-	name: string;
-	email: string;
-	role: "patient" | "clinician" | "admin";
-	image: string | null;
-	emailVerified: boolean;
-	createdAt: string;
-	updatedAt: string;
-};
+type User = RouterOutput["users"]["list"][number];
 
 const ROLE_UPDATE_DEBOUNCE_MS = 500;
 
@@ -44,8 +27,6 @@ export default function AdminUsersPage() {
 	const router = useRouter();
 	const [searchQuery, setSearchQuery] = useState("");
 	const [roleFilter, setRoleFilter] = useState<string>("all");
-	const [selectedUser, setSelectedUser] = useState<User | null>(null);
-	const [dialogOpen, setDialogOpen] = useState(false);
 
 	const queryOptions = trpc.users.list.queryOptions();
 	const { data: users, isPending } = useQuery(queryOptions);
@@ -172,14 +153,11 @@ export default function AdminUsersPage() {
 			header: "Actions",
 			cell: ({ row }) => (
 				<Button
-					onClick={() => {
-						setSelectedUser(row.original);
-						setDialogOpen(true);
-					}}
+					onClick={() => router.push(`/dashboard/admin/users/${row.original.id}`)}
 					size="sm"
 					variant="outline"
 				>
-					<Eye className="mr-2 h-4 w-4" />
+					<Eye className="h-4 w-4" />
 					View Details
 				</Button>
 			),
@@ -253,84 +231,6 @@ export default function AdminUsersPage() {
 					<DataTable columns={columns} data={filteredUsers ?? []} emptyMessage="No users found" />
 				)}
 			</ListCard>
-
-			<Dialog onOpenChange={setDialogOpen} open={dialogOpen}>
-				<DialogContent>
-					<DialogHeader>
-						<DialogTitle>User Details</DialogTitle>
-						<DialogDescription>View basic information about this user</DialogDescription>
-					</DialogHeader>
-
-					{selectedUser && (
-						<div className="space-y-4 py-4">
-							<div className="flex items-center gap-4">
-								<Avatar className="h-16 w-16">
-									<AvatarImage
-										alt={selectedUser.name}
-										className="rounded-md"
-										src={selectedUser.image ?? undefined}
-									/>
-									<AvatarFallback className="text-lg">
-										{selectedUser.name
-											.split(" ")
-											.filter((n) => n.length > 0)
-											.map((n) => n[0])
-											.join("")
-											.toUpperCase()}
-									</AvatarFallback>
-								</Avatar>
-								<div className="flex-1">
-									<h3 className="font-semibold text-lg">{selectedUser.name}</h3>
-									<p className="text-muted-foreground text-sm">{selectedUser.email}</p>
-								</div>
-							</div>
-
-							<div className="space-y-3 rounded-lg border p-4">
-								<div className="grid grid-cols-2 gap-2">
-									<span className="text-muted-foreground text-sm">Role:</span>
-									<Badge className="w-fit">
-										{selectedUser.role.charAt(0).toUpperCase() + selectedUser.role.slice(1)}
-									</Badge>
-								</div>
-
-								<div className="grid grid-cols-2 gap-2">
-									<span className="text-muted-foreground text-sm">Email Status:</span>
-									<Badge
-										className="w-fit"
-										variant={selectedUser.emailVerified ? "default" : "secondary"}
-									>
-										{selectedUser.emailVerified ? "Verified" : "Unverified"}
-									</Badge>
-								</div>
-
-								<div className="grid grid-cols-2 gap-2">
-									<span className="text-muted-foreground text-sm">Joined:</span>
-									<span className="text-sm">
-										{new Date(selectedUser.createdAt).toLocaleDateString("en-US", {
-											year: "numeric",
-											month: "long",
-											day: "numeric",
-										})}
-									</span>
-								</div>
-							</div>
-						</div>
-					)}
-
-					<DialogFooter>
-						{selectedUser && (
-							<Button
-								onClick={() => {
-									router.push(`/dashboard/admin/users/${selectedUser.id}` as never);
-								}}
-								variant="default"
-							>
-								View Full Details
-							</Button>
-						)}
-					</DialogFooter>
-				</DialogContent>
-			</Dialog>
 		</DashboardPageShell>
 	);
 }

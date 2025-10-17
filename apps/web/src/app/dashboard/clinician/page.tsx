@@ -1,8 +1,8 @@
-import { auth } from "@mumbaihacks/auth";
-import { Calendar, FileText, Plus, Users } from "lucide-react";
-import { headers } from "next/headers";
+"use client";
+
+import { useQuery } from "@tanstack/react-query";
+import { Activity, Calendar, FileText, FlaskConical, Plus, UserRoundCheck, Users } from "lucide-react";
 import Link from "next/link";
-import { redirect } from "next/navigation";
 import { AppointmentsTable } from "@/components/dashboard/appointments-table";
 import { ListCard } from "@/components/dashboard/list-card";
 import { PageHeader } from "@/components/dashboard/page-header";
@@ -10,44 +10,53 @@ import { DashboardPageShell } from "@/components/dashboard/page-shell";
 import { StatsCard } from "@/components/dashboard/stats-card";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { authClient } from "@/lib/auth-client";
+import { trpc } from "@/utils/trpc";
 
-export default async function ClinicianDashboardPage() {
-	const session = await auth.api.getSession({
-		headers: await headers(),
-	});
+type AppointmentWithPatient = {
+	id: string;
+	patientId: string;
+	clinicianId: string;
+	scheduledAt: string;
+	status: "pending" | "confirmed" | "completed" | "cancelled";
+	notes: string | null;
+	createdAt: string;
+	updatedAt: string;
+	patientName?: string;
+};
 
-	if (!session?.user) {
-		redirect("/login");
-	}
+export default function ClinicianDashboardPage() {
+	const { data: session } = authClient.useSession();
+	const { data: patients } = useQuery(trpc.patients.list.queryOptions());
+	const { data: appointments } = useQuery(trpc.appointments.list.queryOptions()) as {
+		data: AppointmentWithPatient[] | undefined;
+	};
+	const { data: medicalRecords } = useQuery(trpc.medicalRecords.list.queryOptions());
 
-	// Type assertion for role check - role is added via better-auth additionalFields
-	const userRole = (session.user as { role?: string }).role;
-	if (userRole !== "clinician") {
-		redirect("/dashboard");
-	}
-
-	// TODO: Fetch real data using tRPC
 	const stats = {
-		totalPatients: 0,
-		upcomingAppointments: 0,
-		recentRecords: 0,
+		totalPatients: patients?.length || 0,
+		upcomingAppointments:
+			appointments?.filter((a) => a.status === "pending" || a.status === "confirmed").length || 0,
+		recentRecords: medicalRecords?.length || 0,
 	};
 
-	const recentAppointments: Array<{
-		id: string;
-		patientName: string;
-		scheduledAt: string;
-		status: string;
-	}> = [];
+	const RECENT_APPOINTMENTS_LIMIT = 5;
+	const recentAppointments =
+		appointments?.slice(0, RECENT_APPOINTMENTS_LIMIT).map((a) => ({
+			id: a.id,
+			patientName: a.patientName || "Unknown",
+			scheduledAt: a.scheduledAt,
+			status: a.status,
+		})) || [];
 
 	return (
 		<DashboardPageShell
 			header={
 				<PageHeader
 					actions={
-						<Link href="/dashboard/clinician/appointments">
+						<Link href="/dashboard/clinician/appointments/new">
 							<Button>
-								<Plus className="mr-2 h-4 w-4" />
+								<Plus className="h-4 w-4" />
 								New Appointment
 							</Button>
 						</Link>
@@ -55,11 +64,10 @@ export default async function ClinicianDashboardPage() {
 					breadcrumbItems={[{ label: "Dashboard", href: "/dashboard" }, { label: "Clinician" }]}
 					description="Here is an overview of your practice"
 					icon={<Users className="h-8 w-8" />}
-					title={`Welcome back, ${session.user.name}`}
+					title={`Welcome back ${session?.user?.name}`}
 				/>
 			}
 		>
-			{/* Stats Cards */}
 			<div className="grid gap-4 md:grid-cols-3">
 				<StatsCard
 					description="Active patients under your care"
@@ -81,7 +89,6 @@ export default async function ClinicianDashboardPage() {
 				/>
 			</div>
 
-			{/* Recent Appointments */}
 			<ListCard
 				actions={
 					<Link href="/dashboard/clinician/appointments">
@@ -95,7 +102,6 @@ export default async function ClinicianDashboardPage() {
 				<AppointmentsTable appointments={recentAppointments} emptyMessage="No appointments scheduled" />
 			</ListCard>
 
-			{/* Quick Actions */}
 			<div className="grid gap-4 md:grid-cols-3">
 				<Link href="/dashboard/clinician/patients">
 					<Card className="cursor-pointer transition-colors hover:bg-muted/50">
@@ -105,6 +111,30 @@ export default async function ClinicianDashboardPage() {
 								Manage Patients
 							</div>
 							<p className="mt-2 text-muted-foreground text-sm">View and manage your patient list</p>
+						</div>
+					</Card>
+				</Link>
+
+				<Link href="/dashboard/clinician/assessments">
+					<Card className="cursor-pointer transition-colors hover:bg-muted/50">
+						<div className="p-6">
+							<div className="flex items-center font-medium">
+								<Activity className="mr-2 h-5 w-5" />
+								Assessments
+							</div>
+							<p className="mt-2 text-muted-foreground text-sm">Initial assessments and vital signs</p>
+						</div>
+					</Card>
+				</Link>
+
+				<Link href="/dashboard/clinician/orders">
+					<Card className="cursor-pointer transition-colors hover:bg-muted/50">
+						<div className="p-6">
+							<div className="flex items-center font-medium">
+								<FlaskConical className="mr-2 h-5 w-5" />
+								Medical Orders
+							</div>
+							<p className="mt-2 text-muted-foreground text-sm">Lab and imaging orders</p>
 						</div>
 					</Card>
 				</Link>
@@ -129,6 +159,18 @@ export default async function ClinicianDashboardPage() {
 								Prescriptions
 							</div>
 							<p className="mt-2 text-muted-foreground text-sm">Manage prescriptions and medications</p>
+						</div>
+					</Card>
+				</Link>
+
+				<Link href="/dashboard/clinician/discharge">
+					<Card className="cursor-pointer transition-colors hover:bg-muted/50">
+						<div className="p-6">
+							<div className="flex items-center font-medium">
+								<UserRoundCheck className="mr-2 h-5 w-5" />
+								Discharge Summaries
+							</div>
+							<p className="mt-2 text-muted-foreground text-sm">Patient discharge documentation</p>
 						</div>
 					</Card>
 				</Link>

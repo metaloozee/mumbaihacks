@@ -1,32 +1,28 @@
 "use client";
 
+import { useQuery } from "@tanstack/react-query";
 import type { ColumnDef } from "@tanstack/react-table";
 import { FileText } from "lucide-react";
+import Link from "next/link";
 import { DataTable } from "@/components/dashboard/data-table";
 import { ListCard } from "@/components/dashboard/list-card";
 import { PageHeader } from "@/components/dashboard/page-header";
 import { DashboardPageShell } from "@/components/dashboard/page-shell";
 import { Button } from "@/components/ui/button";
+import { type RouterOutput, trpc } from "@/utils/trpc";
 
-type MedicalRecord = {
-	id: string;
-	clinicianName: string;
-	diagnosis: string;
-	notes?: string;
-	createdAt: string;
-};
+type MedicalRecord = RouterOutput["medicalRecords"]["list"][number];
 
 export default function PatientRecordsPage() {
-	// TODO: Fetch medical records using tRPC
-	const records: MedicalRecord[] = [];
+	const { data: records, isLoading } = useQuery(trpc.medicalRecords.list.queryOptions());
 
 	const columns: ColumnDef<MedicalRecord>[] = [
 		{
 			accessorKey: "createdAt",
 			header: "Date",
 			cell: ({ getValue }) => {
-				const date = new Date(getValue() as string);
-				return date.toLocaleDateString("en-US", {
+				const date = getValue() as Date;
+				return new Date(date).toLocaleDateString("en-US", {
 					year: "numeric",
 					month: "long",
 					day: "numeric",
@@ -36,16 +32,24 @@ export default function PatientRecordsPage() {
 		{
 			accessorKey: "clinicianName",
 			header: "Clinician",
+			cell: ({ getValue }) => {
+				const clinicianName = getValue() as string | undefined;
+				return <span className="font-medium">Dr. {clinicianName || "Unknown"}</span>;
+			},
 		},
 		{
 			accessorKey: "diagnosis",
 			header: "Diagnosis",
+			cell: ({ getValue }) => {
+				const diagnosis = getValue() as string;
+				return <span className="font-medium">{diagnosis}</span>;
+			},
 		},
 		{
 			accessorKey: "notes",
 			header: "Notes",
 			cell: ({ getValue }) => {
-				const notes = getValue() as string | undefined;
+				const notes = getValue() as string | null | undefined;
 				return (
 					<span className="block max-w-xs truncate text-muted-foreground text-sm">{notes || "No notes"}</span>
 				);
@@ -54,9 +58,9 @@ export default function PatientRecordsPage() {
 		{
 			id: "actions",
 			header: "Actions",
-			cell: () => (
-				<Button disabled size="sm" variant="outline">
-					View Details
+			cell: ({ row }) => (
+				<Button asChild size="sm" variant="outline">
+					<Link href={`/dashboard/patient/records/${row.original.id}`}>View</Link>
 				</Button>
 			),
 		},
@@ -78,7 +82,11 @@ export default function PatientRecordsPage() {
 			}
 		>
 			<ListCard title="All Medical Records">
-				<DataTable columns={columns} data={records} emptyMessage="No medical records found" />
+				{isLoading ? (
+					<div className="py-8 text-center text-muted-foreground">Loading medical records...</div>
+				) : (
+					<DataTable columns={columns} data={records ?? []} emptyMessage="No medical records found" />
+				)}
 			</ListCard>
 		</DashboardPageShell>
 	);

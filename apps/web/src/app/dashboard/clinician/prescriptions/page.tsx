@@ -1,7 +1,9 @@
 "use client";
 
+import { useQuery } from "@tanstack/react-query";
 import type { ColumnDef } from "@tanstack/react-table";
 import { FileText, Plus } from "lucide-react";
+import Link from "next/link";
 import { useState } from "react";
 import { DataTable } from "@/components/dashboard/data-table";
 import { ListCard } from "@/components/dashboard/list-card";
@@ -10,29 +12,33 @@ import { DashboardPageShell } from "@/components/dashboard/page-shell";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { type RouterOutput, trpc } from "@/utils/trpc";
 
-type Prescription = {
-	id: string;
-	patientName: string;
-	medication: string;
-	dosage: string;
-	status: "active" | "expired" | "filled" | "cancelled";
-	expiryDate: string;
-};
+type Prescription = RouterOutput["prescriptions"]["list"][number];
 
 export default function ClinicianPrescriptionsPage() {
 	const [statusFilter, setStatusFilter] = useState<string>("all");
 
-	// TODO: Fetch prescriptions using tRPC
-	const prescriptions: Prescription[] = [];
+	const { data: prescriptions, isLoading } = useQuery(trpc.prescriptions.list.queryOptions());
 
 	const filteredPrescriptions =
-		statusFilter === "all" ? prescriptions : prescriptions.filter((presc) => presc.status === statusFilter);
+		statusFilter === "all"
+			? prescriptions || []
+			: (prescriptions || []).filter((presc) => presc.status === statusFilter);
 
 	const columns: ColumnDef<Prescription>[] = [
 		{
-			accessorKey: "patientName",
-			header: "Patient",
+			accessorKey: "appointmentId",
+			header: "Appointment",
+			cell: ({ getValue }) => {
+				const appointmentId = getValue() as string;
+				const APPOINTMENT_ID_PREVIEW_LENGTH = 8;
+				return (
+					<span className="font-mono text-sm">
+						{appointmentId.slice(0, APPOINTMENT_ID_PREVIEW_LENGTH)}...
+					</span>
+				);
+			},
 		},
 		{
 			accessorKey: "medication",
@@ -54,7 +60,11 @@ export default function ClinicianPrescriptionsPage() {
 			accessorKey: "expiryDate",
 			header: "Expires",
 			cell: ({ getValue }) => {
-				const date = new Date(getValue() as string);
+				const dateStr = getValue() as string;
+				const date = new Date(dateStr);
+				if (Number.isNaN(date.getTime())) {
+					return "N/A";
+				}
 				return date.toLocaleDateString("en-US", {
 					year: "numeric",
 					month: "short",
@@ -65,13 +75,14 @@ export default function ClinicianPrescriptionsPage() {
 		{
 			id: "actions",
 			header: "Actions",
-			cell: () => (
+			cell: ({ row }) => (
 				<div className="flex gap-2">
-					<Button disabled size="sm" variant="outline">
-						View
+					<Button asChild size="sm" variant="outline">
+						{/* @ts-ignore */}
+						<Link href={`/dashboard/clinician/prescriptions/${row.original.id}`}>View</Link>
 					</Button>
-					<Button disabled size="sm" variant="outline">
-						Renew
+					<Button asChild size="sm" variant="outline">
+						<Link href={"/dashboard/clinician/prescriptions/new"}>Renew</Link>
 					</Button>
 				</div>
 			),
@@ -83,9 +94,11 @@ export default function ClinicianPrescriptionsPage() {
 			header={
 				<PageHeader
 					actions={
-						<Button disabled>
-							<Plus className="mr-2 h-4 w-4" />
-							New Prescription
+						<Button asChild>
+							<Link href="/dashboard/clinician/prescriptions/new">
+								<Plus className="h-4 w-4" />
+								New Prescription
+							</Link>
 						</Button>
 					}
 					breadcrumbItems={[
@@ -116,7 +129,15 @@ export default function ClinicianPrescriptionsPage() {
 				}
 				title="All Prescriptions"
 			>
-				<DataTable columns={columns} data={filteredPrescriptions} emptyMessage="No prescriptions found" />
+				{isLoading ? (
+					<div className="py-8 text-center text-muted-foreground">Loading prescriptions...</div>
+				) : (
+					<DataTable
+						columns={columns}
+						data={filteredPrescriptions ?? []}
+						emptyMessage="No prescriptions found"
+					/>
+				)}
 			</ListCard>
 		</DashboardPageShell>
 	);

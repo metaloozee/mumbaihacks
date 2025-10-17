@@ -44,7 +44,6 @@ export default async function AdminDashboardPage() {
 				/>
 			}
 		>
-			{/* Stats Cards */}
 			<div className="grid gap-4 md:grid-cols-4">
 				<StatsCard
 					description="All users in the system"
@@ -72,7 +71,6 @@ export default async function AdminDashboardPage() {
 				/>
 			</div>
 
-			{/* Recent Activity */}
 			<ListCard title="Recent Activity">
 				{recentActivity.length === 0 ? (
 					<div className="py-6 text-center text-muted-foreground">No recent activity</div>
@@ -96,7 +94,6 @@ export default async function AdminDashboardPage() {
 				)}
 			</ListCard>
 
-			{/* Quick Actions */}
 			<div className="grid gap-4 md:grid-cols-2">
 				<Link href="/dashboard/admin/users">
 					<Card className="cursor-pointer transition-colors hover:bg-muted/50">

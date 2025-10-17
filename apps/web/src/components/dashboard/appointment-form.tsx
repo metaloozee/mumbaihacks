@@ -2,9 +2,12 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { DatePicker } from "@/components/ui/date-picker";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { TimePicker, type TimePickerValue } from "@/components/ui/time-picker";
+import { combineDateAndTime, toDate } from "@/lib/date-utils";
 
 type AppointmentFormData = {
 	patientId: string;
@@ -18,18 +21,41 @@ type AppointmentFormProps = {
 	onCancel?: () => void;
 	patients?: Array<{ id: string; name: string }>;
 	clinicians?: Array<{ id: string; name: string }>;
+	defaultPatientId?: string;
+	defaultClinicianId?: string;
 };
 
-export function AppointmentForm({ onSubmit, onCancel, patients = [], clinicians = [] }: AppointmentFormProps) {
+export function AppointmentForm({
+	onSubmit,
+	onCancel,
+	patients = [],
+	clinicians = [],
+	defaultPatientId = "",
+	defaultClinicianId = "",
+}: AppointmentFormProps) {
 	const [formData, setFormData] = useState<AppointmentFormData>({
-		patientId: "",
-		clinicianId: "",
+		patientId: defaultPatientId,
+		clinicianId: defaultClinicianId,
 		scheduledAt: "",
 		notes: "",
 	});
 
+	const [date, setDate] = useState<Date | undefined>(undefined);
+	const [time, setTime] = useState<TimePickerValue>({ hour: 9, minute: 0, second: 0 });
+
 	const handleSubmit = (e: React.FormEvent) => {
 		e.preventDefault();
+		const chosenDate = date ?? toDate(formData.scheduledAt);
+		if (chosenDate) {
+			const iso = combineDateAndTime({
+				date: chosenDate,
+				hour: time.hour,
+				minute: time.minute,
+				second: time.second ?? 0,
+			});
+			onSubmit?.({ ...formData, scheduledAt: iso });
+			return;
+		}
 		onSubmit?.(formData);
 	};
 
@@ -74,14 +100,11 @@ export function AppointmentForm({ onSubmit, onCancel, patients = [], clinicians 
 			</div>
 
 			<div className="space-y-2">
-				<Label htmlFor="scheduledAt">Scheduled Date & Time</Label>
-				<Input
-					id="scheduledAt"
-					onChange={(e) => setFormData({ ...formData, scheduledAt: e.target.value })}
-					required
-					type="datetime-local"
-					value={formData.scheduledAt}
-				/>
+				<Label htmlFor="scheduled-date">Scheduled Date & Time</Label>
+				<div className="grid grid-cols-2 gap-4">
+					<DatePicker id="scheduled-date" onChange={setDate} value={date} />
+					<TimePicker id="scheduled-time" onChange={(v) => setTime(v)} value={time} />
+				</div>
 			</div>
 
 			<div className="space-y-2">

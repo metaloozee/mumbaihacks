@@ -2,9 +2,11 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { DatePicker } from "@/components/ui/date-picker";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { toDate } from "@/lib/date-utils";
 
 type PrescriptionFormData = {
 	appointmentId: string;
@@ -20,11 +22,17 @@ type PrescriptionFormProps = {
 	onSubmit?: (data: PrescriptionFormData) => void;
 	onCancel?: () => void;
 	appointments?: Array<{ id: string; patientName: string; date: string }>;
+	defaultAppointmentId?: string;
 };
 
-export function PrescriptionForm({ onSubmit, onCancel, appointments = [] }: PrescriptionFormProps) {
+export function PrescriptionForm({
+	onSubmit,
+	onCancel,
+	appointments = [],
+	defaultAppointmentId = "",
+}: PrescriptionFormProps) {
 	const [formData, setFormData] = useState<PrescriptionFormData>({
-		appointmentId: "",
+		appointmentId: defaultAppointmentId,
 		medication: "",
 		dosage: "",
 		duration: "",
@@ -32,10 +40,13 @@ export function PrescriptionForm({ onSubmit, onCancel, appointments = [] }: Pres
 		expiryDate: "",
 		instructions: "",
 	});
+	const [expiry, setExpiry] = useState<Date | undefined>(undefined);
 
 	const handleSubmit = (e: React.FormEvent) => {
 		e.preventDefault();
-		onSubmit?.(formData);
+		const date = expiry ?? toDate(formData.expiryDate) ?? undefined;
+		const iso = date ? new Date(date).toISOString() : formData.expiryDate;
+		onSubmit?.({ ...formData, expiryDate: iso });
 	};
 
 	return (
@@ -110,13 +121,7 @@ export function PrescriptionForm({ onSubmit, onCancel, appointments = [] }: Pres
 
 			<div className="space-y-2">
 				<Label htmlFor="expiryDate">Expiry Date</Label>
-				<Input
-					id="expiryDate"
-					onChange={(e) => setFormData({ ...formData, expiryDate: e.target.value })}
-					required
-					type="date"
-					value={formData.expiryDate}
-				/>
+				<DatePicker id="expiryDate" onChange={setExpiry} value={expiry} />
 			</div>
 
 			<div className="space-y-2">

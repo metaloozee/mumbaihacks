@@ -231,34 +231,11 @@ function RelationshipsCard({ user, relationships }: RelationshipsCardProps) {
 	);
 }
 
-type UserDetails = {
-	user: {
-		id: string;
-		name: string;
-		email: string;
-		role: "patient" | "clinician" | "admin";
-		image: string | null;
-		emailVerified: Date | null;
-		createdAt: Date;
-		updatedAt: Date;
-	};
-	relationships: {
-		patients?: PatientRelationship[];
-		clinicians?: ClinicianRelationship[];
-	};
-	appointments: Appointment[];
-	medicalRecords: MedicalRecord[];
-	prescriptions: Prescription[];
-};
-
 export default function UserDetailsPage({ params }: { params: Params }) {
 	const unwrappedParams = reactUse(params);
 	const userId = unwrappedParams.id;
 
-	const { data: userDetails, isPending } = useQuery(
-		// @ts-expect-error - tRPC queryOptions types not fully inferred
-		trpc.users.getDetails.queryOptions({ id: userId })
-	);
+	const { data: userDetails, isPending } = useQuery(trpc.users.getDetails.queryOptions({ id: userId }));
 
 	if (isPending) {
 		return <LoadingState />;
@@ -268,7 +245,13 @@ export default function UserDetailsPage({ params }: { params: Params }) {
 		return <NotFoundState />;
 	}
 
-	const { user, relationships, appointments, medicalRecords, prescriptions } = userDetails as UserDetails;
+	const { user, relationships, appointments, medicalRecords, prescriptions } = userDetails as unknown as {
+		user: typeof userDetails.user;
+		relationships: typeof userDetails.relationships;
+		appointments: Appointment[];
+		medicalRecords: MedicalRecord[];
+		prescriptions: Prescription[];
+	};
 
 	return (
 		<DashboardPageShell>
@@ -298,7 +281,7 @@ export default function UserDetailsPage({ params }: { params: Params }) {
 							<span>{user.email}</span>
 							{user.emailVerified && (
 								<Badge className="ml-2" variant="outline">
-									<UserCheck className="mr-1 h-3 w-3" />
+									<UserCheck className="h-3 w-3" />
 									Verified
 								</Badge>
 							)}
@@ -306,7 +289,7 @@ export default function UserDetailsPage({ params }: { params: Params }) {
 					</div>
 				</div>
 				<Badge className="text-sm" variant="default">
-					<Shield className="mr-1 h-4 w-4" />
+					<Shield className="h-4 w-4" />
 					{user.role.charAt(0).toUpperCase() + user.role.slice(1)}
 				</Badge>
 			</div>
@@ -348,7 +331,15 @@ export default function UserDetailsPage({ params }: { params: Params }) {
 					</CardContent>
 				</Card>
 
-				<RelationshipsCard relationships={relationships} user={user} />
+				<RelationshipsCard
+					relationships={
+						relationships as {
+							patients?: PatientRelationship[];
+							clinicians?: ClinicianRelationship[];
+						}
+					}
+					user={user}
+				/>
 			</div>
 
 			{/* Appointments */}

@@ -1,10 +1,21 @@
+import { auth } from "@mumbaihacks/auth";
 import { MoveLeftIcon } from "lucide-react";
+import { headers } from "next/headers";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { Suspense } from "react";
 import LoginForm from "@/components/login-form";
 import { Button } from "@/components/ui/button";
 
-export default function Page() {
+export default async function Page() {
+	const session = await auth.api.getSession({
+		headers: await headers(),
+	});
+
+	if (session?.user) {
+		redirect("/dashboard");
+	}
+
 	return (
 		<main className="grid place-items-center px-4">
 			<div className="w-full max-w-md">

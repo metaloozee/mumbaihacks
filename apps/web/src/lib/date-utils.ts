@@ -18,3 +18,29 @@ export function formatDateTime(date: string | Date): string {
 export function formatDate(date: string | Date): string {
 	return new Date(date).toLocaleDateString("en-US");
 }
+
+export type CombinedDateTime = {
+	date: Date;
+	hour?: number;
+	minute?: number;
+	second?: number;
+};
+
+/**
+ * Combine a calendar date (Date object, date part only used) with time parts to an ISO string
+ */
+export function combineDateAndTime({ date, hour = 0, minute = 0, second = 0 }: CombinedDateTime): string {
+	const combined = new Date(date);
+	combined.setHours(hour, minute, second, 0);
+	return combined.toISOString();
+}
+
+/**
+ * Parse an ISO or date string to a Date instance safely
+ */
+export function toDate(value: string | Date | null | undefined): Date | null {
+	if (!value) {
+		return null;
+	}
+	return value instanceof Date ? value : new Date(value);
+}

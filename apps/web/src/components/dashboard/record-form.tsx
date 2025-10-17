@@ -16,11 +16,17 @@ type MedicalRecordFormProps = {
 	onSubmit?: (data: MedicalRecordFormData) => void;
 	onCancel?: () => void;
 	patients?: Array<{ id: string; name: string }>;
+	defaultPatientId?: string;
 };
 
-export function MedicalRecordForm({ onSubmit, onCancel, patients = [] }: MedicalRecordFormProps) {
+export function MedicalRecordForm({
+	onSubmit,
+	onCancel,
+	patients = [],
+	defaultPatientId = "",
+}: MedicalRecordFormProps) {
 	const [formData, setFormData] = useState<MedicalRecordFormData>({
-		patientId: "",
+		patientId: defaultPatientId,
 		diagnosis: "",
 		notes: "",
 	});

@@ -48,7 +48,7 @@ const appointmentColumns: ColumnDef<Appointment>[] = [
 		cell: () => (
 			<Link href={"/dashboard/clinician/appointments"}>
 				<Button size="sm" variant="ghost">
-					View <ArrowRight className="ml-2 h-4 w-4" />
+					View <ArrowRight className="h-4 w-4" />
 				</Button>
 			</Link>
 		),

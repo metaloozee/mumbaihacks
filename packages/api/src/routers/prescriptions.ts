@@ -1,4 +1,4 @@
-import { appointment, prescription } from "@mumbaihacks/db";
+import { appointment, prescription, user } from "@mumbaihacks/db";
 import { TRPCError } from "@trpc/server";
 import { and, eq, type SQL } from "drizzle-orm";
 import { z } from "zod";
@@ -17,7 +17,6 @@ export const prescriptionsRouter = router({
 			const userId = ctx.session.user.id;
 			const userRole = ctx.session.user.role;
 
-			// For patients, we need to join with appointments to find their prescriptions
 			if (userRole === "patient") {
 				const prescriptions = await ctx.db
 					.select({
@@ -73,7 +72,28 @@ export const prescriptionsRouter = router({
 		const userId = ctx.session.user.id;
 		const userRole = ctx.session.user.role;
 
-		const prescriptionData = await ctx.db.select().from(prescription).where(eq(prescription.id, input.id)).limit(1);
+		const prescriptionData = await ctx.db
+			.select({
+				id: prescription.id,
+				appointmentId: prescription.appointmentId,
+				prescriberId: prescription.prescriberId,
+				medication: prescription.medication,
+				dosage: prescription.dosage,
+				duration: prescription.duration,
+				refills: prescription.refills,
+				expiryDate: prescription.expiryDate,
+				status: prescription.status,
+				instructions: prescription.instructions,
+				createdAt: prescription.createdAt,
+				updatedAt: prescription.updatedAt,
+				patientName: user.name,
+				patientEmail: user.email,
+			})
+			.from(prescription)
+			.innerJoin(appointment, eq(prescription.appointmentId, appointment.id))
+			.innerJoin(user, eq(appointment.patientId, user.id))
+			.where(eq(prescription.id, input.id))
+			.limit(1);
 
 		const presc = prescriptionData[0];
 
@@ -121,8 +141,9 @@ export const prescriptionsRouter = router({
 				instructions: z.string().optional(),
 			})
 		)
-		.mutation(({ ctx }) => {
+		.mutation(async ({ ctx, input }) => {
 			const userRole = ctx.session.user.role;
+			const userId = ctx.session.user.id;
 
 			if (userRole !== "clinician" && userRole !== "admin") {
 				throw new TRPCError({
@@ -131,11 +152,41 @@ export const prescriptionsRouter = router({
 				});
 			}
 
-			// TODO: Implement prescription creation logic
-			throw new TRPCError({
-				code: "NOT_IMPLEMENTED",
-				message: "Prescription creation not yet implemented",
-			});
+			const appt = await ctx.db
+				.select()
+				.from(appointment)
+				.where(eq(appointment.id, input.appointmentId))
+				.limit(1);
+
+			if (appt.length === 0) {
+				throw new TRPCError({
+					code: "NOT_FOUND",
+					message: "Appointment not found",
+				});
+			}
+
+			if (appt[0] && appt[0].clinicianId !== userId && userRole !== "admin") {
+				throw new TRPCError({
+					code: "FORBIDDEN",
+					message: "You can only create prescriptions for your own appointments",
+				});
+			}
+
+			const result = await ctx.db
+				.insert(prescription)
+				.values({
+					appointmentId: input.appointmentId,
+					prescriberId: userId,
+					medication: input.medication,
+					dosage: input.dosage,
+					duration: input.duration,
+					refills: input.refills,
+					expiryDate: input.expiryDate,
+					instructions: input.instructions,
+				})
+				.returning();
+
+			return result[0];
 		}),
 
 	update: protectedProcedure
@@ -146,8 +197,9 @@ export const prescriptionsRouter = router({
 				instructions: z.string().optional(),
 			})
 		)
-		.mutation(({ ctx }) => {
+		.mutation(async ({ ctx, input }) => {
 			const userRole = ctx.session.user.role;
+			const userId = ctx.session.user.id;
 
 			if (userRole !== "clinician" && userRole !== "admin") {
 				throw new TRPCError({
@@ -156,10 +208,96 @@ export const prescriptionsRouter = router({
 				});
 			}
 
-			// TODO: Implement prescription update logic
-			throw new TRPCError({
-				code: "NOT_IMPLEMENTED",
-				message: "Prescription update not yet implemented",
-			});
+			const presc = await ctx.db.select().from(prescription).where(eq(prescription.id, input.id)).limit(1);
+
+			if (presc.length === 0) {
+				throw new TRPCError({
+					code: "NOT_FOUND",
+					message: "Prescription not found",
+				});
+			}
+
+			if (presc[0] && presc[0].prescriberId !== userId && userRole !== "admin") {
+				throw new TRPCError({
+					code: "FORBIDDEN",
+					message: "You can only update your own prescriptions",
+				});
+			}
+
+			const result = await ctx.db
+				.update(prescription)
+				.set({
+					...input,
+					updatedAt: new Date(),
+				})
+				.where(eq(prescription.id, input.id))
+				.returning();
+
+			return result[0];
 		}),
+
+	requestRefill: protectedProcedure.input(z.object({ id: z.string() })).mutation(async ({ ctx, input }) => {
+		const userId = ctx.session.user.id;
+		const userRole = ctx.session.user.role;
+
+		if (userRole !== "patient") {
+			throw new TRPCError({
+				code: "FORBIDDEN",
+				message: "Only patients can request refills",
+			});
+		}
+
+		const prescData = await ctx.db
+			.select({
+				id: prescription.id,
+				appointmentId: prescription.appointmentId,
+				prescriberId: prescription.prescriberId,
+				medication: prescription.medication,
+				dosage: prescription.dosage,
+				duration: prescription.duration,
+				refills: prescription.refills,
+				expiryDate: prescription.expiryDate,
+				status: prescription.status,
+				instructions: prescription.instructions,
+				patientId: appointment.patientId,
+			})
+			.from(prescription)
+			.innerJoin(appointment, eq(prescription.appointmentId, appointment.id))
+			.where(eq(prescription.id, input.id))
+			.limit(1);
+
+		if (prescData.length === 0) {
+			throw new TRPCError({
+				code: "NOT_FOUND",
+				message: "Prescription not found",
+			});
+		}
+
+		const presc = prescData[0];
+
+		if (presc && presc.patientId !== userId) {
+			throw new TRPCError({
+				code: "FORBIDDEN",
+				message: "You can only request refills for your own prescriptions",
+			});
+		}
+
+		if (presc && presc.status !== "active" && presc.status !== "expired") {
+			throw new TRPCError({
+				code: "BAD_REQUEST",
+				message: "Can only request refills for active or expired prescriptions",
+			});
+		}
+
+		const result = await ctx.db
+			.update(prescription)
+			.set({
+				refills: (presc?.refills ?? 0) + 1,
+				updatedAt: new Date(),
+			})
+			.where(eq(prescription.id, input.id))
+			.returning();
+
+		return result[0];
+	}),
 });

@@ -1,4 +1,4 @@
-import { medicalRecord } from "@mumbaihacks/db";
+import { medicalRecord, user } from "@mumbaihacks/db";
 import { TRPCError } from "@trpc/server";
 import { and, eq, type SQL } from "drizzle-orm";
 import { z } from "zod";
@@ -9,7 +9,6 @@ export const medicalRecordsRouter = router({
 		const userId = ctx.session.user.id;
 		const userRole = ctx.session.user.role;
 
-		// Build filter based on role
 		const filters: SQL[] = [];
 
 		if (userRole === "clinician") {
@@ -26,8 +25,19 @@ export const medicalRecordsRouter = router({
 		}
 
 		const records = await ctx.db
-			.select()
+			.select({
+				id: medicalRecord.id,
+				patientId: medicalRecord.patientId,
+				clinicianId: medicalRecord.clinicianId,
+				diagnosis: medicalRecord.diagnosis,
+				notes: medicalRecord.notes,
+				createdAt: medicalRecord.createdAt,
+				updatedAt: medicalRecord.updatedAt,
+				clinicianName: user.name,
+				clinicianEmail: user.email,
+			})
 			.from(medicalRecord)
+			.innerJoin(user, eq(medicalRecord.clinicianId, user.id))
 			.where(filters.length > 0 ? and(...filters) : undefined);
 
 		return records;
@@ -38,9 +48,20 @@ export const medicalRecordsRouter = router({
 		const userRole = ctx.session.user.role;
 
 		const recordData = await ctx.db
-			.select()
+			.select({
+				id: medicalRecord.id,
+				patientId: medicalRecord.patientId,
+				clinicianId: medicalRecord.clinicianId,
+				diagnosis: medicalRecord.diagnosis,
+				notes: medicalRecord.notes,
+				createdAt: medicalRecord.createdAt,
+				updatedAt: medicalRecord.updatedAt,
+				clinicianName: user.name,
+				clinicianEmail: user.email,
+			})
 			.from(medicalRecord)
-			.where(and(eq(medicalRecord.patientId, userId), eq(medicalRecord.id, input.id)))
+			.innerJoin(user, eq(medicalRecord.clinicianId, user.id))
+			.where(eq(medicalRecord.id, input.id))
 			.limit(1);
 
 		if (recordData.length === 0) {
@@ -52,7 +73,6 @@ export const medicalRecordsRouter = router({
 
 		const record = recordData[0];
 
-		// Check access permissions
 		if (record && userRole === "patient" && record.patientId !== userId) {
 			throw new TRPCError({
 				code: "FORBIDDEN",
@@ -70,7 +90,6 @@ export const medicalRecordsRouter = router({
 		return record;
 	}),
 
-	// Skeleton for creating medical records (clinicians only)
 	create: protectedProcedure
 		.input(
 			z.object({
@@ -79,8 +98,9 @@ export const medicalRecordsRouter = router({
 				notes: z.string().optional(),
 			})
 		)
-		.mutation(({ ctx }) => {
+		.mutation(async ({ ctx, input }) => {
 			const userRole = ctx.session.user.role;
+			const userId = ctx.session.user.id;
 
 			if (userRole !== "clinician" && userRole !== "admin") {
 				throw new TRPCError({
@@ -89,14 +109,20 @@ export const medicalRecordsRouter = router({
 				});
 			}
 
-			// TODO: Implement medical record creation logic
-			throw new TRPCError({
-				code: "NOT_IMPLEMENTED",
-				message: "Medical record creation not yet implemented",
-			});
+			const result = await ctx.db
+				.insert(medicalRecord)
+				.values({
+					id: crypto.randomUUID(),
+					patientId: input.patientId,
+					clinicianId: userId,
+					diagnosis: input.diagnosis,
+					notes: input.notes,
+				})
+				.returning();
+
+			return result[0];
 		}),
 
-	// Skeleton for updating medical records
 	update: protectedProcedure
 		.input(
 			z.object({
@@ -105,8 +131,9 @@ export const medicalRecordsRouter = router({
 				notes: z.string().optional(),
 			})
 		)
-		.mutation(({ ctx }) => {
+		.mutation(async ({ ctx, input }) => {
 			const userRole = ctx.session.user.role;
+			const userId = ctx.session.user.id;
 
 			if (userRole !== "clinician" && userRole !== "admin") {
 				throw new TRPCError({
@@ -115,10 +142,31 @@ export const medicalRecordsRouter = router({
 				});
 			}
 
-			// TODO: Implement medical record update logic
-			throw new TRPCError({
-				code: "NOT_IMPLEMENTED",
-				message: "Medical record update not yet implemented",
-			});
+			const record = await ctx.db.select().from(medicalRecord).where(eq(medicalRecord.id, input.id)).limit(1);
+
+			if (record.length === 0) {
+				throw new TRPCError({
+					code: "NOT_FOUND",
+					message: "Medical record not found",
+				});
+			}
+
+			if (record[0] && record[0].clinicianId !== userId && userRole !== "admin") {
+				throw new TRPCError({
+					code: "FORBIDDEN",
+					message: "You can only update your own medical records",
+				});
+			}
+
+			const result = await ctx.db
+				.update(medicalRecord)
+				.set({
+					...input,
+					updatedAt: new Date(),
+				})
+				.where(eq(medicalRecord.id, input.id))
+				.returning();
+
+			return result[0];
 		}),
 });

@@ -1,6 +1,9 @@
 import { protectedProcedure, publicProcedure, router, t } from "../index";
 import { appointmentsRouter } from "./appointments";
+import { assessmentsRouter } from "./assessments";
+import { dischargeRouter } from "./discharge";
 import { medicalRecordsRouter } from "./medical-records";
+import { ordersRouter } from "./orders";
 import { patientsRouter } from "./patients";
 import { prescriptionsRouter } from "./prescriptions";
 import { usersRouter } from "./users";
@@ -16,6 +19,9 @@ export const appRouter = router({
 	prescriptions: prescriptionsRouter,
 	patients: patientsRouter,
 	users: usersRouter,
+	assessments: assessmentsRouter,
+	orders: ordersRouter,
+	discharge: dischargeRouter,
 });
 
 export const createCaller = t.createCallerFactory(appRouter);

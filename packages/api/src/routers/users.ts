@@ -5,7 +5,6 @@ import { alias } from "drizzle-orm/pg-core";
 import { z } from "zod";
 import { protectedProcedure, router } from "../index";
 
-// Admin-only middleware
 const adminProcedure = protectedProcedure.use(({ ctx, next }) => {
 	if (ctx.session.user.role !== "admin") {
 		throw new TRPCError({
@@ -17,7 +16,6 @@ const adminProcedure = protectedProcedure.use(({ ctx, next }) => {
 });
 
 export const usersRouter = router({
-	// List all users with optional role filter (admin only)
 	list: adminProcedure
 		.input(
 			z
@@ -50,7 +48,6 @@ export const usersRouter = router({
 			return users;
 		}),
 
-	// Get user by ID (admin only)
 	getById: adminProcedure.input(z.object({ id: z.string() })).query(async ({ ctx, input }) => {
 		const userData = await ctx.db
 			.select({
@@ -77,7 +74,6 @@ export const usersRouter = router({
 		return userData[0];
 	}),
 
-	// Get statistics about users
 	getStats: adminProcedure.query(async ({ ctx }) => {
 		const users = await ctx.db
 			.select({
@@ -128,9 +124,7 @@ export const usersRouter = router({
 			return { success: true };
 		}),
 
-	// Get detailed user information with relationships
 	getDetails: adminProcedure.input(z.object({ id: z.string() })).query(async ({ ctx, input }) => {
-		// Get basic user info
 		const userData = await ctx.db
 			.select({
 				id: user.id,
@@ -155,11 +149,9 @@ export const usersRouter = router({
 
 		const userInfo = userData[0] as NonNullable<(typeof userData)[0]>;
 
-		// Get relationships based on role
 		const relationships: { clinicians?: unknown[]; patients?: unknown[] } = {};
 
 		if (userInfo.role === "clinician") {
-			// Get patients for this clinician
 			const patients = await ctx.db
 				.select({
 					id: clinicianPatient.id,
@@ -175,7 +167,6 @@ export const usersRouter = router({
 
 			relationships.patients = patients;
 		} else if (userInfo.role === "patient") {
-			// Get clinicians for this patient
 			const clinicians = await ctx.db
 				.select({
 					id: clinicianPatient.id,
@@ -192,7 +183,6 @@ export const usersRouter = router({
 			relationships.clinicians = clinicians;
 		}
 
-		// Get appointments (as patient or clinician)
 		const patientUser = alias(user, "patient_user");
 		const clinicianUser = alias(user, "clinician_user");
 
@@ -215,7 +205,6 @@ export const usersRouter = router({
 			.limit(10)
 			.orderBy(desc(appointment.scheduledAt));
 
-		// Get medical records (as patient or clinician)
 		const records = await ctx.db
 			.select({
 				id: medicalRecord.id,
@@ -230,7 +219,6 @@ export const usersRouter = router({
 			.limit(10)
 			.orderBy(desc(medicalRecord.createdAt));
 
-		// Get prescriptions (as prescriber only, since prescriptions are tied to appointments)
 		const prescriptions = await ctx.db
 			.select({
 				id: prescription.id,
@@ -259,7 +247,6 @@ export const usersRouter = router({
 		};
 	}),
 
-	// Skeleton for deleting user
 	delete: adminProcedure.input(z.object({ userId: z.string() })).mutation(() => {
 		// TODO: Implement user deletion logic
 		throw new TRPCError({

@@ -23,10 +23,10 @@
   "dependencies": {
     "@mumbaihacks/auth": "workspace:*",
     "@mumbaihacks/db": "workspace:*",
+    "drizzle-orm": "catalog:",
     "@trpc/client": "catalog:",
     "@trpc/server": "catalog:",
     "dotenv": "catalog:",
-    "drizzle-orm": "catalog:",
     "next": "catalog:",
     "zod": "catalog:"
   }

@@ -47,7 +47,7 @@ export function AssessmentForm({ onSubmit, onCancel, patients = [], appointments
 		onSubmit?.(formData);
 	};
 
-	const updateVitalSign = (key: keyof VitalSigns, value: string | number) => {
+	const updateVitalSign = (key: keyof VitalSigns, value: string | number | undefined) => {
 		setFormData({
 			...formData,
 			vitalSigns: {
@@ -125,7 +125,7 @@ export function AssessmentForm({ onSubmit, onCancel, patients = [], appointments
 									id="bloodPressure"
 									onChange={(e) => updateVitalSign("bloodPressure", e.target.value)}
 									placeholder="120/80"
-									value={formData.vitalSigns?.bloodPressure || ""}
+									value={formData.vitalSigns?.bloodPressure ?? ""}
 								/>
 							</div>
 
@@ -134,10 +134,15 @@ export function AssessmentForm({ onSubmit, onCancel, patients = [], appointments
 								<Input
 									id="heartRate"
 									min="0"
-									onChange={(e) => updateVitalSign("heartRate", Number(e.target.value))}
+									onChange={(e) =>
+										updateVitalSign(
+											"heartRate",
+											e.target.value === "" ? undefined : Number(e.target.value)
+										)
+									}
 									placeholder="72"
 									type="number"
-									value={formData.vitalSigns?.heartRate || ""}
+									value={formData.vitalSigns?.heartRate ?? ""}
 								/>
 							</div>
 
@@ -145,11 +150,16 @@ export function AssessmentForm({ onSubmit, onCancel, patients = [], appointments
 								<Label htmlFor="temperature">Temperature (°F)</Label>
 								<Input
 									id="temperature"
-									onChange={(e) => updateVitalSign("temperature", Number.parseFloat(e.target.value))}
+									onChange={(e) =>
+										updateVitalSign(
+											"temperature",
+											e.target.value === "" ? undefined : Number.parseFloat(e.target.value)
+										)
+									}
 									placeholder="98.6"
 									step="0.1"
 									type="number"
-									value={formData.vitalSigns?.temperature || ""}
+									value={formData.vitalSigns?.temperature ?? ""}
 								/>
 							</div>
 						</div>
@@ -160,10 +170,15 @@ export function AssessmentForm({ onSubmit, onCancel, patients = [], appointments
 								<Input
 									id="respiratoryRate"
 									min="0"
-									onChange={(e) => updateVitalSign("respiratoryRate", Number(e.target.value))}
+									onChange={(e) =>
+										updateVitalSign(
+											"respiratoryRate",
+											e.target.value === "" ? undefined : Number(e.target.value)
+										)
+									}
 									placeholder="16"
 									type="number"
-									value={formData.vitalSigns?.respiratoryRate || ""}
+									value={formData.vitalSigns?.respiratoryRate ?? ""}
 								/>
 							</div>
 
@@ -173,10 +188,15 @@ export function AssessmentForm({ onSubmit, onCancel, patients = [], appointments
 									id="oxygenSaturation"
 									max="100"
 									min="0"
-									onChange={(e) => updateVitalSign("oxygenSaturation", Number(e.target.value))}
+									onChange={(e) =>
+										updateVitalSign(
+											"oxygenSaturation",
+											e.target.value === "" ? undefined : Number(e.target.value)
+										)
+									}
 									placeholder="98"
 									type="number"
-									value={formData.vitalSigns?.oxygenSaturation || ""}
+									value={formData.vitalSigns?.oxygenSaturation ?? ""}
 								/>
 							</div>
 
@@ -185,11 +205,16 @@ export function AssessmentForm({ onSubmit, onCancel, patients = [], appointments
 								<Input
 									id="weight"
 									min="0"
-									onChange={(e) => updateVitalSign("weight", Number.parseFloat(e.target.value))}
+									onChange={(e) =>
+										updateVitalSign(
+											"weight",
+											e.target.value === "" ? undefined : Number.parseFloat(e.target.value)
+										)
+									}
 									placeholder="150"
 									step="0.1"
 									type="number"
-									value={formData.vitalSigns?.weight || ""}
+									value={formData.vitalSigns?.weight ?? ""}
 								/>
 							</div>
 
@@ -198,11 +223,16 @@ export function AssessmentForm({ onSubmit, onCancel, patients = [], appointments
 								<Input
 									id="height"
 									min="0"
-									onChange={(e) => updateVitalSign("height", Number.parseFloat(e.target.value))}
+									onChange={(e) =>
+										updateVitalSign(
+											"height",
+											e.target.value === "" ? undefined : Number.parseFloat(e.target.value)
+										)
+									}
 									placeholder="68"
 									step="0.1"
 									type="number"
-									value={formData.vitalSigns?.height || ""}
+									value={formData.vitalSigns?.height ?? ""}
 								/>
 							</div>
 						</div>
@@ -214,7 +244,7 @@ export function AssessmentForm({ onSubmit, onCancel, patients = [], appointments
 							id="assessmentNotes"
 							onChange={(e) => setFormData({ ...formData, assessmentNotes: e.target.value })}
 							placeholder="Additional clinical notes and observations..."
-							value={formData.assessmentNotes}
+							value={formData.assessmentNotes ?? ""}
 						/>
 					</div>
 				</CardContent>

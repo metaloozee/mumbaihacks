@@ -24,6 +24,7 @@ type AppointmentFormProps = {
 	clinicians?: Array<{ id: string; name: string }>;
 	defaultPatientId?: string;
 	defaultClinicianId?: string;
+	isLoading?: boolean;
 };
 
 export function AppointmentForm({
@@ -33,6 +34,7 @@ export function AppointmentForm({
 	clinicians = [],
 	defaultPatientId = "",
 	defaultClinicianId = "",
+	isLoading = false,
 }: AppointmentFormProps) {
 	const [formData, setFormData] = useState<AppointmentFormData>({
 		patientId: defaultPatientId,
@@ -72,6 +74,7 @@ export function AppointmentForm({
 						<div className="space-y-2">
 							<Label htmlFor="patient">Patient</Label>
 							<Select
+								disabled={isLoading}
 								onValueChange={(value) => setFormData({ ...formData, patientId: value })}
 								value={formData.patientId}
 							>
@@ -91,6 +94,7 @@ export function AppointmentForm({
 						<div className="space-y-2">
 							<Label htmlFor="clinician">Clinician</Label>
 							<Select
+								disabled={isLoading}
 								onValueChange={(value) => setFormData({ ...formData, clinicianId: value })}
 								value={formData.clinicianId}
 							>
@@ -126,6 +130,7 @@ export function AppointmentForm({
 					<div className="space-y-2">
 						<Label htmlFor="notes">Notes (Optional)</Label>
 						<Textarea
+							disabled={isLoading}
 							id="notes"
 							onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
 							placeholder="Add context for this appointment (symptoms, preferences, etc.)"
@@ -135,11 +140,13 @@ export function AppointmentForm({
 				</CardContent>
 				<CardFooter className="justify-end gap-2">
 					{onCancel && (
-						<Button onClick={onCancel} type="button" variant="outline">
+						<Button disabled={isLoading} onClick={onCancel} type="button" variant="outline">
 							Cancel
 						</Button>
 					)}
-					<Button type="submit">Create Appointment</Button>
+					<Button disabled={isLoading} type="submit">
+						{isLoading ? "Creating..." : "Create Appointment"}
+					</Button>
 				</CardFooter>
 			</Card>
 		</form>

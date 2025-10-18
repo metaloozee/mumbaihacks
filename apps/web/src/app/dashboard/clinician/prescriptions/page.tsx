@@ -27,8 +27,8 @@ export default function ClinicianPrescriptionsPage() {
 	const { data: appointments } = useQuery(trpc.appointments.list.queryOptions());
 
 	const createPrescription = useMutation({
-		mutationFn: (data: Parameters<typeof trpcClient.prescriptions.create.mutate>[0]) =>
-			trpcClient.prescriptions.create.mutate(data),
+		mutationFn: async (data: Parameters<typeof trpcClient.prescriptions.create.mutate>[0]) =>
+			await trpcClient.prescriptions.create.mutate(data),
 		onSuccess: () => {
 			toast.success("Prescription created successfully!");
 			setCreateOpen(false);
@@ -41,6 +41,13 @@ export default function ClinicianPrescriptionsPage() {
 		statusFilter === "all"
 			? prescriptions || []
 			: (prescriptions || []).filter((presc) => presc.status === statusFilter);
+
+	const appointmentOptions =
+		appointments?.map((a) => ({
+			id: a.id,
+			patientName: a.patientName,
+			date: new Date(a.scheduledAt).toLocaleDateString(),
+		})) || [];
 
 	const columns: ColumnDef<Prescription>[] = [
 		{
@@ -106,13 +113,7 @@ export default function ClinicianPrescriptionsPage() {
 						}
 					>
 						<PrescriptionForm
-							appointments={
-								appointments?.map((a) => ({
-									id: a.id,
-									patientName: a.patientId,
-									date: new Date(a.scheduledAt).toLocaleDateString(),
-								})) || []
-							}
+							appointments={appointmentOptions}
 							onCancel={undefined}
 							onSubmit={(data) => createPrescription.mutate(data)}
 						/>
@@ -139,13 +140,7 @@ export default function ClinicianPrescriptionsPage() {
 							}
 						>
 							<PrescriptionForm
-								appointments={
-									appointments?.map((a) => ({
-										id: a.id,
-										patientName: a.patientId,
-										date: new Date(a.scheduledAt).toLocaleDateString(),
-									})) || []
-								}
+								appointments={appointmentOptions}
 								onCancel={() => setCreateOpen(false)}
 								onSubmit={(data) => createPrescription.mutate(data)}
 							/>

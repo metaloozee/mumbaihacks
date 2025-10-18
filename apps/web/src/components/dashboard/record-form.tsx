@@ -30,13 +30,30 @@ export function MedicalRecordForm({
 	const [formData, setFormData] = useState<MedicalRecordFormData>({
 		patientId: defaultPatientId,
 		diagnosis: "",
-		notes: "",
+		notes: undefined,
 	});
+	const [patientError, setPatientError] = useState<string>("");
 
 	const handleSubmit = (e: React.FormEvent) => {
 		e.preventDefault();
+
+		if (!formData.patientId || formData.patientId === "") {
+			setPatientError("Please select a patient");
+			return;
+		}
+
+		setPatientError("");
 		onSubmit?.(formData);
 	};
+
+	const handlePatientChange = (value: string) => {
+		setFormData({ ...formData, patientId: value });
+		if (value) {
+			setPatientError("");
+		}
+	};
+
+	const isFormValid = formData.patientId !== "" && patients.length > 0;
 
 	return (
 		<form onSubmit={handleSubmit}>
@@ -47,22 +64,35 @@ export function MedicalRecordForm({
 				</CardHeader>
 				<CardContent className="space-y-6">
 					<div className="space-y-2">
-						<Label htmlFor="patient">Patient</Label>
-						<Select
-							onValueChange={(value) => setFormData({ ...formData, patientId: value })}
-							value={formData.patientId}
-						>
+						<Label htmlFor="patient">
+							Patient <span className="text-destructive">*</span>
+						</Label>
+						<Select onValueChange={handlePatientChange} value={formData.patientId}>
 							<SelectTrigger id="patient">
-								<SelectValue placeholder="Select patient" />
+								<SelectValue
+									placeholder={patients.length === 0 ? "No patients available" : "Select patient"}
+								/>
 							</SelectTrigger>
 							<SelectContent>
-								{patients.map((patient) => (
-									<SelectItem key={patient.id} value={patient.id}>
-										{patient.name}
-									</SelectItem>
-								))}
+								{patients.length === 0 ? (
+									<div className="px-2 py-6 text-center text-muted-foreground text-sm">
+										No patients found. Please add a patient first.
+									</div>
+								) : (
+									patients.map((patient) => (
+										<SelectItem key={patient.id} value={patient.id}>
+											{patient.name}
+										</SelectItem>
+									))
+								)}
 							</SelectContent>
 						</Select>
+						{patientError && <p className="text-destructive text-sm">{patientError}</p>}
+						{patients.length === 0 && (
+							<p className="text-muted-foreground text-sm">
+								No patients are available to create a medical record.
+							</p>
+						)}
 					</div>
 
 					<div className="space-y-2">
@@ -80,9 +110,9 @@ export function MedicalRecordForm({
 						<Label htmlFor="notes">Clinical Notes (Optional)</Label>
 						<Textarea
 							id="notes"
-							onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+							onChange={(e) => setFormData({ ...formData, notes: e.target.value || undefined })}
 							placeholder="Additional clinical notes..."
-							value={formData.notes}
+							value={formData.notes ?? ""}
 						/>
 					</div>
 				</CardContent>
@@ -92,7 +122,9 @@ export function MedicalRecordForm({
 							Cancel
 						</Button>
 					)}
-					<Button type="submit">Create Medical Record</Button>
+					<Button disabled={!isFormValid} type="submit">
+						Create Medical Record
+					</Button>
 				</CardFooter>
 			</Card>
 		</form>

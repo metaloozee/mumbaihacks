@@ -16,7 +16,11 @@ import { trpc, trpcClient } from "@/utils/trpc";
 export default function AssessmentsPage() {
 	const [createOpen, setCreateOpen] = useState(false);
 	const { data: assessments, isLoading, refetch } = useQuery(trpc.assessments.list.queryOptions());
-	const { data: patients } = useQuery(trpc.patients.list.queryOptions());
+	const {
+		data: patients,
+		isLoading: patientsLoading,
+		error: patientsError,
+	} = useQuery(trpc.patients.getAvailablePatients.queryOptions());
 	const { data: appointments } = useQuery(trpc.appointments.list.queryOptions());
 
 	const createAssessment = useMutation({
@@ -32,15 +36,14 @@ export default function AssessmentsPage() {
 		},
 	});
 
-	const patientsList = (patients || []).map((p) => {
-		if ("patient" in p && p.patient) {
-			return { id: p.patient.id, name: p.patient.name };
-		}
-		if ("patientId" in p) {
-			return { id: p.patientId, name: "Unknown" };
-		}
-		return { id: "", name: "Unknown" };
-	});
+	// Filter out any patients without valid id or name
+	const patientsList =
+		patients
+			?.filter((p) => p.id && p.name)
+			.map((p) => ({
+				id: p.id,
+				name: p.name,
+			})) || [];
 
 	const appointmentsList =
 		appointments?.map((a) => ({
@@ -48,6 +51,41 @@ export default function AssessmentsPage() {
 			patientName: "Patient",
 			date: new Date(a.scheduledAt).toLocaleDateString(),
 		})) || [];
+
+	const renderFormContent = () => {
+		if (patientsLoading) {
+			return (
+				<div className="flex items-center justify-center p-8">
+					<div className="text-muted-foreground">Loading patients...</div>
+				</div>
+			);
+		}
+
+		if (patientsError) {
+			return (
+				<div className="flex items-center justify-center p-8">
+					<div className="text-destructive">Error loading patients: {patientsError.message}</div>
+				</div>
+			);
+		}
+
+		return (
+			<AssessmentForm
+				appointments={appointmentsList}
+				onCancel={() => setCreateOpen(false)}
+				onSubmit={(formData) =>
+					createAssessment.mutate({
+						patientId: formData.patientId,
+						appointmentId: formData.appointmentId,
+						chiefComplaint: formData.chiefComplaint,
+						vitalSigns: formData.vitalSigns,
+						assessmentNotes: formData.assessmentNotes,
+					})
+				}
+				patients={patientsList}
+			/>
+		);
+	};
 
 	return (
 		<DashboardPageShell
@@ -65,20 +103,7 @@ export default function AssessmentsPage() {
 								</Button>
 							}
 						>
-							<AssessmentForm
-								appointments={appointmentsList}
-								onCancel={() => setCreateOpen(false)}
-								onSubmit={(formData) =>
-									createAssessment.mutate({
-										patientId: formData.patientId,
-										appointmentId: formData.appointmentId,
-										chiefComplaint: formData.chiefComplaint,
-										vitalSigns: formData.vitalSigns,
-										assessmentNotes: formData.assessmentNotes,
-									})
-								}
-								patients={patientsList}
-							/>
+							{renderFormContent()}
 						</FormDialog>
 					}
 					breadcrumbItems={[

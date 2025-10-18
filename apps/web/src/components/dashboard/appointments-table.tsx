@@ -3,6 +3,7 @@
 import type { ColumnDef } from "@tanstack/react-table";
 import { ArrowRight } from "lucide-react";
 import Link from "next/link";
+import { useMemo } from "react";
 import { DataTable } from "@/components/dashboard/data-table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -60,11 +61,19 @@ export function AppointmentsTable({
 	emptyMessage = "No appointments scheduled",
 }: AppointmentsTableProps) {
 	// Sort appointments by scheduled date and time (earliest first)
-	const sortedAppointments = [...appointments].sort((a, b) => {
-		const dateA = new Date(a.scheduledAt).getTime();
-		const dateB = new Date(b.scheduledAt).getTime();
-		return dateA - dateB;
-	});
+	// Memoized to avoid re-sorting on every render
+	const sortedAppointments = useMemo(() => {
+		return [...appointments].sort((a, b) => {
+			// Defensive date parsing - treat invalid dates as far future (Infinity)
+			const dateA = new Date(a.scheduledAt).getTime();
+			const timestampA = Number.isFinite(dateA) ? dateA : Number.POSITIVE_INFINITY;
+
+			const dateB = new Date(b.scheduledAt).getTime();
+			const timestampB = Number.isFinite(dateB) ? dateB : Number.POSITIVE_INFINITY;
+
+			return timestampA - timestampB;
+		});
+	}, [appointments]);
 
 	return <DataTable columns={appointmentColumns} data={sortedAppointments} emptyMessage={emptyMessage} />;
 }

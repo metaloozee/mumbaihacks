@@ -153,7 +153,7 @@ export function OrderForm({ onSubmit, onCancel, patients = [], appointments = []
 							Cancel
 						</Button>
 					)}
-					<Button disabled={!formData.orderType} type="submit">
+					<Button disabled={!(formData.patientId && formData.orderType)} type="submit">
 						Create Order
 					</Button>
 				</CardFooter>

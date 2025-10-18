@@ -33,13 +33,29 @@ export function OrderResultsForm({ onSubmit, onCancel, orders = [] }: OrderResul
 		attachmentUrl: "",
 	});
 	const [resultDate, setResultDate] = useState<Date | undefined>(undefined);
+	const [orderError, setOrderError] = useState<string>("");
 
 	const handleSubmit = (e: React.FormEvent) => {
 		e.preventDefault();
+
+		if (!formData.orderId) {
+			setOrderError("Please select an order");
+			return;
+		}
+
 		const date = resultDate ?? toDate(formData.resultDate) ?? undefined;
 		const iso = date ? new Date(date).toISOString() : formData.resultDate;
 		onSubmit?.({ ...formData, resultDate: iso });
 	};
+
+	const handleOrderChange = (value: string) => {
+		setFormData({ ...formData, orderId: value });
+		if (orderError) {
+			setOrderError("");
+		}
+	};
+
+	const isFormValid = formData.orderId && formData.resultData;
 
 	return (
 		<form onSubmit={handleSubmit}>
@@ -51,11 +67,8 @@ export function OrderResultsForm({ onSubmit, onCancel, orders = [] }: OrderResul
 				<CardContent className="space-y-6">
 					<div className="space-y-2">
 						<Label htmlFor="order">Order</Label>
-						<Select
-							onValueChange={(value) => setFormData({ ...formData, orderId: value })}
-							value={formData.orderId}
-						>
-							<SelectTrigger id="order">
+						<Select onValueChange={handleOrderChange} required value={formData.orderId}>
+							<SelectTrigger className={orderError ? "border-destructive" : ""} id="order">
 								<SelectValue placeholder="Select order" />
 							</SelectTrigger>
 							<SelectContent>
@@ -66,6 +79,7 @@ export function OrderResultsForm({ onSubmit, onCancel, orders = [] }: OrderResul
 								))}
 							</SelectContent>
 						</Select>
+						{orderError && <p className="text-destructive text-sm">{orderError}</p>}
 					</div>
 
 					<div className="space-y-2">
@@ -113,7 +127,9 @@ export function OrderResultsForm({ onSubmit, onCancel, orders = [] }: OrderResul
 							Cancel
 						</Button>
 					)}
-					<Button type="submit">Add Results</Button>
+					<Button disabled={!isFormValid} type="submit">
+						Add Results
+					</Button>
 				</CardFooter>
 			</Card>
 		</form>

@@ -16,7 +16,7 @@ import { Button } from "@/components/ui/button";
 import { FormDialog } from "@/components/ui/form-dialog";
 import { Input } from "@/components/ui/input";
 import { authClient } from "@/lib/auth-client";
-import { trpc, trpcClient } from "@/utils/trpc";
+import { queryClient, trpc, trpcClient } from "@/utils/trpc";
 
 // DO NOT use the RouterOutput type to directly infer types from the tRPC router since it returns the complete output's type structure which may include nested conditional types that is not relevant here.
 type ClinicianPatientRecord = {
@@ -66,7 +66,19 @@ export default function ClinicianPatientsPage() {
 		onSuccess: () => {
 			toast.success("Appointment created successfully!");
 		},
-		onError: (error: Error) => toast.error(error.message || "Failed to create appointment"),
+		onError: (error: unknown) => {
+			const message =
+				error && typeof error === "object" && "message" in error && typeof error.message === "string"
+					? error.message
+					: String(error ?? "Failed to create appointment");
+			toast.error("Failed to create appointment", { description: message });
+		},
+		onSettled: async () => {
+			// Invalidate appointments list to refresh the UI
+			await queryClient.invalidateQueries({ queryKey: trpc.appointments.list.queryOptions().queryKey });
+			// Also invalidate patient details in case they're being viewed
+			await queryClient.invalidateQueries({ queryKey: [["patients"]] });
+		},
 	});
 
 	const columns: ColumnDef<ClinicianPatientRecord>[] = [
@@ -134,6 +146,7 @@ export default function ClinicianPatientsPage() {
 								clinicians={cliniciansList}
 								defaultClinicianId={clinicianId}
 								defaultPatientId={row.original.patientId}
+								isLoading={createAppointment.isPending}
 								onSubmit={(data) => createAppointment.mutate(data)}
 								patients={patientsList}
 							/>

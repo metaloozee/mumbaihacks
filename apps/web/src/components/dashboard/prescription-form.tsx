@@ -25,6 +25,7 @@ type PrescriptionFormProps = {
 	onCancel?: () => void;
 	appointments?: Array<{ id: string; patientName: string; date: string }>;
 	defaultAppointmentId?: string;
+	isPending?: boolean;
 };
 
 export function PrescriptionForm({
@@ -32,6 +33,7 @@ export function PrescriptionForm({
 	onCancel,
 	appointments = [],
 	defaultAppointmentId = "",
+	isPending = false,
 }: PrescriptionFormProps) {
 	const [formData, setFormData] = useState<PrescriptionFormData>({
 		appointmentId: defaultAppointmentId,
@@ -145,11 +147,13 @@ export function PrescriptionForm({
 				</CardContent>
 				<CardFooter className="justify-end gap-2">
 					{onCancel && (
-						<Button onClick={onCancel} type="button" variant="outline">
+						<Button disabled={isPending} onClick={onCancel} type="button" variant="outline">
 							Cancel
 						</Button>
 					)}
-					<Button type="submit">Create Prescription</Button>
+					<Button disabled={isPending} type="submit">
+						{isPending ? "Creating..." : "Create Prescription"}
+					</Button>
 				</CardFooter>
 			</Card>
 		</form>

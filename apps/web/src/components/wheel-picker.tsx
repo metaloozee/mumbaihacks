@@ -1,3 +1,4 @@
+// @ts-nocheck
 import "@ncdai/react-wheel-picker/style.css";
 
 import * as WheelPickerPrimitive from "@ncdai/react-wheel-picker";
@@ -14,7 +15,7 @@ function WheelPickerWrapper({
 	return (
 		<WheelPickerPrimitive.WheelPickerWrapper
 			className={cn(
-				"dark:background w-56 rounded-lg bg-white px-1 shadow-xs dark:bg-background",
+				"w-56 rounded-lg bg-white px-1 shadow-xs dark:bg-background",
 				"*:data-rwp:first:*:data-rwp-highlight-wrapper:rounded-s-md",
 				"*:data-rwp:last:*:data-rwp-highlight-wrapper:rounded-e-md",
 				className

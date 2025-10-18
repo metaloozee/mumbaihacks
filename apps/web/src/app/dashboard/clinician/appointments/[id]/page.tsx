@@ -4,6 +4,7 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { ArrowLeft, Calendar } from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
+import { useMemo } from "react";
 import { toast } from "sonner";
 import { PageHeader } from "@/components/dashboard/page-header";
 import { DashboardPageShell } from "@/components/dashboard/page-shell";
@@ -48,6 +49,17 @@ export default function AppointmentDetailPage() {
 	});
 
 	const { data: appointments } = useQuery(trpc.appointments.list.queryOptions());
+
+	// Memoize appointment options to avoid recreating the array on every render
+	const appointmentOptions = useMemo(
+		() =>
+			appointments?.map((a) => ({
+				id: a.id,
+				patientName: a.patientName,
+				date: new Date(a.scheduledAt).toLocaleDateString("en-US"),
+			})) || [],
+		[appointments]
+	);
 
 	if (isLoading) {
 		return (
@@ -232,14 +244,9 @@ export default function AppointmentDetailPage() {
 						trigger={<Button variant="outline">Create Prescription</Button>}
 					>
 						<PrescriptionForm
-							appointments={
-								appointments?.map((a) => ({
-									id: a.id,
-									patientName: a.patientId,
-									date: new Date(a.scheduledAt).toLocaleDateString(),
-								})) || []
-							}
+							appointments={appointmentOptions}
 							defaultAppointmentId={appointmentId}
+							isPending={createPrescription.isPending}
 							onSubmit={(data) => createPrescription.mutate(data)}
 						/>
 					</FormDialog>

@@ -16,8 +16,20 @@ import { trpc, trpcClient } from "@/utils/trpc";
 export default function DischargePage() {
 	const [createOpen, setCreateOpen] = useState(false);
 	const { data: discharges, isLoading, refetch } = useQuery(trpc.discharge.list.queryOptions());
-	const { data: patients } = useQuery(trpc.patients.list.queryOptions());
-	const { data: appointments } = useQuery(trpc.appointments.list.queryOptions());
+	const {
+		data: patients,
+		isLoading: isPatientsLoading,
+		isError: isPatientsError,
+	} = useQuery(trpc.patients.list.queryOptions());
+	const {
+		data: appointments,
+		isLoading: isAppointmentsLoading,
+		isError: isAppointmentsError,
+	} = useQuery(trpc.appointments.list.queryOptions());
+
+	// Combine loading and error states
+	const isDataLoading = isPatientsLoading || isAppointmentsLoading;
+	const hasDataError = isPatientsError || isAppointmentsError;
 
 	const createDischarge = useMutation({
 		mutationFn: (data: Parameters<typeof trpcClient.discharge.create.mutate>[0]) =>
@@ -43,9 +55,36 @@ export default function DischargePage() {
 	const appointmentsList =
 		appointments?.map((a) => ({
 			id: a.id,
-			patientName: "Patient",
+			patientName: a.patientName || "Unknown Patient",
 			date: new Date(a.scheduledAt).toLocaleString(),
 		})) || [];
+
+	const renderFormContent = () => {
+		if (isDataLoading) {
+			return (
+				<div className="flex items-center justify-center p-8">
+					<div className="text-muted-foreground">Loading data...</div>
+				</div>
+			);
+		}
+
+		if (hasDataError) {
+			return (
+				<div className="flex items-center justify-center p-8">
+					<div className="text-destructive">Error loading data. Please try again later.</div>
+				</div>
+			);
+		}
+
+		return (
+			<DischargeForm
+				appointments={appointmentsList}
+				onCancel={() => setCreateOpen(false)}
+				onSubmit={(data) => createDischarge.mutate(data)}
+				patients={patientsList}
+			/>
+		);
+	};
 
 	return (
 		<DashboardPageShell
@@ -57,18 +96,13 @@ export default function DischargePage() {
 							onOpenChange={setCreateOpen}
 							open={createOpen}
 							trigger={
-								<Button type="button">
+								<Button disabled={isDataLoading} type="button">
 									<Plus className="h-4 w-4" />
-									New Discharge Summary
+									{isDataLoading ? "Loading..." : "New Discharge Summary"}
 								</Button>
 							}
 						>
-							<DischargeForm
-								appointments={appointmentsList}
-								onCancel={() => setCreateOpen(false)}
-								onSubmit={(data) => createDischarge.mutate(data)}
-								patients={patientsList}
-							/>
+							{renderFormContent()}
 						</FormDialog>
 					}
 					breadcrumbItems={[

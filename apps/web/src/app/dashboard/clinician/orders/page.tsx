@@ -4,6 +4,7 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { FlaskConical, Plus } from "lucide-react";
 // import Link from "next/link"; // Not used when using dialog trigger
 import { useState } from "react";
+import { toast } from "sonner";
 import { OrderForm } from "@/components/dashboard/order-form";
 import { PageHeader } from "@/components/dashboard/page-header";
 import { DashboardPageShell } from "@/components/dashboard/page-shell";
@@ -45,16 +46,29 @@ export default function OrdersPage() {
 			setCreateOpen(false);
 			refetch();
 		},
+		onError: (error) => {
+			toast.error("Failed to create order:", { description: error.message });
+		},
 	});
 
-	const patientsList = (patients || []).map((p) => {
-		if ("patient" in p && p.patient) {
-			return { id: p.patient.id, name: p.patient.name };
+	const isClinicianPatientRelation = (
+		p: unknown
+	): p is { id: string; patientId: string; patient: { id: string; name: string | null } } =>
+		typeof p === "object" &&
+		p !== null &&
+		"patient" in p &&
+		typeof p.patient === "object" &&
+		p.patient !== null &&
+		"id" in p.patient &&
+		"name" in p.patient &&
+		typeof p.patient.id === "string" &&
+		p.patient.id.length > 0;
+
+	const patientsList: Array<{ id: string; name: string }> = (patients ?? []).flatMap((p) => {
+		if (isClinicianPatientRelation(p)) {
+			return [{ id: p.patient.id, name: p.patient.name ?? "Unknown" }];
 		}
-		if ("patientId" in p) {
-			return { id: p.patientId, name: "Unknown" };
-		}
-		return { id: "", name: "Unknown" };
+		return [];
 	});
 
 	const appointmentsList = (appointments || []).map((a) => ({

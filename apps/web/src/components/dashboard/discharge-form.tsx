@@ -40,9 +40,18 @@ export function DischargeForm({ onSubmit, onCancel, patients = [], appointments 
 		restrictions: "",
 	});
 	const [discharge, setDischarge] = useState<Date | undefined>(undefined);
+	const [patientError, setPatientError] = useState<string>("");
 
 	const handleSubmit = (e: React.FormEvent) => {
 		e.preventDefault();
+
+		if (!formData.patientId) {
+			setPatientError("Please select a patient");
+			return;
+		}
+
+		setPatientError("");
+
 		const date = discharge ?? toDate(formData.dischargeDate) ?? undefined;
 		const iso = date ? new Date(date).toISOString() : formData.dischargeDate;
 		onSubmit?.({ ...formData, dischargeDate: iso });
@@ -60,10 +69,13 @@ export function DischargeForm({ onSubmit, onCancel, patients = [], appointments 
 						<div className="space-y-2">
 							<Label htmlFor="patient">Patient</Label>
 							<Select
-								onValueChange={(value) => setFormData({ ...formData, patientId: value })}
+								onValueChange={(value) => {
+									setFormData({ ...formData, patientId: value });
+									setPatientError("");
+								}}
 								value={formData.patientId}
 							>
-								<SelectTrigger id="patient">
+								<SelectTrigger className={patientError ? "border-red-500" : ""} id="patient">
 									<SelectValue placeholder="Select patient" />
 								</SelectTrigger>
 								<SelectContent>
@@ -74,6 +86,7 @@ export function DischargeForm({ onSubmit, onCancel, patients = [], appointments 
 									))}
 								</SelectContent>
 							</Select>
+							{patientError && <p className="font-medium text-red-500 text-sm">{patientError}</p>}
 						</div>
 
 						<div className="space-y-2">

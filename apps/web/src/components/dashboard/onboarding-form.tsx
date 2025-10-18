@@ -41,13 +41,31 @@ export function OnboardingForm({ onSubmit, onCancel }: OnboardingFormProps) {
 		maritalStatus: "",
 	});
 	const [dob, setDob] = useState<Date | undefined>(undefined);
+	const [dobError, setDobError] = useState<string>("");
 
 	const handleSubmit = (e: React.FormEvent) => {
 		e.preventDefault();
+
 		const date = dob ?? toDate(formData.dateOfBirth) ?? undefined;
-		const iso = date ? new Date(date).toISOString() : formData.dateOfBirth;
+		if (!date) {
+			setDobError("Date of Birth is required");
+			return;
+		}
+
+		setDobError("");
+
+		const iso = new Date(date).toISOString();
 		onSubmit?.({ ...formData, dateOfBirth: iso });
 	};
+
+	const handleDobChange = (date: Date | undefined) => {
+		setDob(date);
+		if (date) {
+			setDobError("");
+		}
+	};
+
+	const isFormValid = !!(dob ?? toDate(formData.dateOfBirth));
 
 	return (
 		<form onSubmit={handleSubmit}>
@@ -61,8 +79,11 @@ export function OnboardingForm({ onSubmit, onCancel }: OnboardingFormProps) {
 						<h3 className="font-medium text-lg">Personal Information</h3>
 						<div className="grid grid-cols-1 gap-4 md:grid-cols-2">
 							<div className="space-y-2">
-								<Label htmlFor="dateOfBirth">Date of Birth</Label>
-								<DatePicker id="dateOfBirth" onChange={setDob} value={dob} />
+								<Label htmlFor="dateOfBirth">
+									Date of Birth <span className="text-destructive">*</span>
+								</Label>
+								<DatePicker id="dateOfBirth" onChange={handleDobChange} value={dob} />
+								{dobError && <p className="text-destructive text-sm">{dobError}</p>}
 							</div>
 
 							<div className="space-y-2">
@@ -222,7 +243,9 @@ export function OnboardingForm({ onSubmit, onCancel }: OnboardingFormProps) {
 							Cancel
 						</Button>
 					)}
-					<Button type="submit">Complete Onboarding</Button>
+					<Button disabled={!isFormValid} type="submit">
+						Complete Onboarding
+					</Button>
 				</CardFooter>
 			</Card>
 		</form>

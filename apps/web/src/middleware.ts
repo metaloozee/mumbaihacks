@@ -1,9 +1,12 @@
 import { auth } from "@mumbaihacks/auth";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
+import { createServerCaller } from "@/server/trpc";
+import { user } from "@mumbaihacks/db";
 
 export async function middleware(request: NextRequest) {
 	const { pathname } = request.nextUrl;
+	const caller = await createServerCaller();
 
 	// Get session
 	const session = await auth.api.getSession({
@@ -18,6 +21,12 @@ export async function middleware(request: NextRequest) {
 		}
 
 		const userRole = session.user.role;
+		if (userRole === "patient") {
+			const record = await caller.patients.getDemographics(({ userId: session.user.id }));
+			if (!record) {
+				return NextResponse.redirect(new URL("/onboarding", request.url));
+			}
+		}
 
 		// Admin route protection
 		if (pathname.startsWith("/dashboard/admin") && userRole !== "admin") {

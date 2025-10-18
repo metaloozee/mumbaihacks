@@ -59,5 +59,12 @@ export function AppointmentsTable({
 	appointments,
 	emptyMessage = "No appointments scheduled",
 }: AppointmentsTableProps) {
-	return <DataTable columns={appointmentColumns} data={appointments} emptyMessage={emptyMessage} />;
+	// Sort appointments by scheduled date and time (earliest first)
+	const sortedAppointments = [...appointments].sort((a, b) => {
+		const dateA = new Date(a.scheduledAt).getTime();
+		const dateB = new Date(b.scheduledAt).getTime();
+		return dateA - dateB;
+	});
+
+	return <DataTable columns={appointmentColumns} data={sortedAppointments} emptyMessage={emptyMessage} />;
 }

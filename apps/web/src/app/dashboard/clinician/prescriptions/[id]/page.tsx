@@ -7,9 +7,11 @@ import { useParams } from "next/navigation";
 import { toast } from "sonner";
 import { PageHeader } from "@/components/dashboard/page-header";
 import { DashboardPageShell } from "@/components/dashboard/page-shell";
+import { PrescriptionForm } from "@/components/dashboard/prescription-form";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { FormDialog } from "@/components/ui/form-dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { trpc, trpcClient } from "@/utils/trpc";
 
@@ -36,6 +38,17 @@ export default function PrescriptionDetailPage() {
 			toast.error(error.message || "Failed to update prescription");
 		},
 	});
+
+	const createPrescription = useMutation({
+		mutationFn: (data: Parameters<typeof trpcClient.prescriptions.create.mutate>[0]) =>
+			trpcClient.prescriptions.create.mutate(data),
+		onSuccess: () => {
+			toast.success("Prescription created successfully!");
+		},
+		onError: (error: Error) => toast.error(error.message || "Failed to create prescription"),
+	});
+
+	const { data: appointments } = useQuery(trpc.appointments.list.queryOptions());
 
 	if (isLoading) {
 		return (
@@ -269,13 +282,22 @@ export default function PrescriptionDetailPage() {
 				</Card>
 
 				<div className="flex gap-4">
-					<Button asChild variant="outline">
-						<Link
-							href={`/dashboard/clinician/prescriptions/new?appointmentId=${prescription.appointmentId}`}
-						>
-							Create Renewal
-						</Link>
-					</Button>
+					<FormDialog
+						maxWidthClassName="sm:max-w-2xl"
+						trigger={<Button variant="outline">Create Renewal</Button>}
+					>
+						<PrescriptionForm
+							appointments={
+								appointments?.map((a) => ({
+									id: a.id,
+									patientName: a.patientId,
+									date: new Date(a.scheduledAt).toLocaleDateString(),
+								})) || []
+							}
+							defaultAppointmentId={prescription.appointmentId}
+							onSubmit={(data) => createPrescription.mutate(data)}
+						/>
+					</FormDialog>
 				</div>
 			</div>
 		</DashboardPageShell>

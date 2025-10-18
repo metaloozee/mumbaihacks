@@ -6,21 +6,36 @@ import { Calendar, Plus } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 import { toast } from "sonner";
+import { AppointmentForm } from "@/components/dashboard/appointment-form";
 import { DataTable } from "@/components/dashboard/data-table";
 import { ListCard } from "@/components/dashboard/list-card";
 import { PageHeader } from "@/components/dashboard/page-header";
 import { DashboardPageShell } from "@/components/dashboard/page-shell";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { FormDialog } from "@/components/ui/form-dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { authClient } from "@/lib/auth-client";
 import { type RouterOutput, trpc, trpcClient } from "@/utils/trpc";
 
 type Appointment = RouterOutput["appointments"]["list"][number];
 
 export default function ClinicianAppointmentsPage() {
 	const [statusFilter, setStatusFilter] = useState<string>("all");
+	const [createOpen, setCreateOpen] = useState(false);
+
+	const { data: session } = authClient.useSession();
+	const clinicianId = session?.user.id || "";
 
 	const { data: appointments, isLoading, refetch } = useQuery(trpc.appointments.list.queryOptions());
+	const { data: patients } = useQuery(trpc.patients.list.queryOptions());
+
+	// Sort appointments by scheduled date and time (earliest first)
+	const sortedAppointments = [...(appointments || [])].sort((a, b) => {
+		const dateA = new Date(a.scheduledAt).getTime();
+		const dateB = new Date(b.scheduledAt).getTime();
+		return dateA - dateB;
+	});
 
 	const updateAppointment = useMutation({
 		mutationFn: (data: { id: string; status: "confirmed" | "completed" | "cancelled" }) =>
@@ -35,7 +50,46 @@ export default function ClinicianAppointmentsPage() {
 	});
 
 	const filteredAppointments =
-		statusFilter === "all" ? appointments || [] : (appointments || []).filter((apt) => apt.status === statusFilter);
+		statusFilter === "all" ? sortedAppointments : sortedAppointments.filter((apt) => apt.status === statusFilter);
+
+	const patientsList = (patients || []).map((p) => {
+		if ("patient" in p && p.patient) {
+			return { id: p.patient.id, name: p.patient.name };
+		}
+		if ("patientId" in p) {
+			return { id: p.patientId, name: "Unknown" };
+		}
+		return { id: "", name: "Unknown" };
+	});
+
+	const cliniciansList = clinicianId ? [{ id: clinicianId, name: "Me" }] : [];
+
+	const createAppointment = useMutation({
+		mutationFn: (data: { patientId: string; clinicianId: string; scheduledAt: string; notes?: string }) =>
+			trpcClient.appointments.create.mutate(data),
+		onSuccess: () => {
+			toast.success("Appointment created successfully!");
+			setCreateOpen(false);
+			refetch();
+		},
+		onError: (error: Error) => {
+			toast.error(error.message || "Failed to create appointment");
+		},
+	});
+
+	const handleCreateSubmit = (formData: {
+		patientId: string;
+		clinicianId: string;
+		scheduledAt: string;
+		notes?: string;
+	}) => {
+		createAppointment.mutate({
+			patientId: formData.patientId,
+			clinicianId: formData.clinicianId,
+			scheduledAt: formData.scheduledAt,
+			notes: formData.notes,
+		});
+	};
 
 	const columns: ColumnDef<Appointment>[] = [
 		{
@@ -105,12 +159,25 @@ export default function ClinicianAppointmentsPage() {
 			header={
 				<PageHeader
 					actions={
-						<Button asChild>
-							<Link href="/dashboard/clinician/appointments/new">
-								<Plus className="h-4 w-4" />
-								New Appointment
-							</Link>
-						</Button>
+						<FormDialog
+							maxWidthClassName="sm:max-w-2xl"
+							onOpenChange={setCreateOpen}
+							open={createOpen}
+							trigger={
+								<Button type="button">
+									<Plus className="h-4 w-4" />
+									New Appointment
+								</Button>
+							}
+						>
+							<AppointmentForm
+								clinicians={cliniciansList}
+								defaultClinicianId={clinicianId}
+								onCancel={() => setCreateOpen(false)}
+								onSubmit={handleCreateSubmit}
+								patients={patientsList}
+							/>
+						</FormDialog>
 					}
 					breadcrumbItems={[
 						{ label: "Dashboard", href: "/dashboard" },

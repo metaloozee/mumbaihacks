@@ -1,29 +1,75 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { Plus, UserRoundCheck } from "lucide-react";
-import Link from "next/link";
+import { useState } from "react";
+import { toast } from "sonner";
+import { DischargeForm } from "@/components/dashboard/discharge-form";
 import { PageHeader } from "@/components/dashboard/page-header";
 import { DashboardPageShell } from "@/components/dashboard/page-shell";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { FormDialog } from "@/components/ui/form-dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { trpc } from "@/utils/trpc";
+import { trpc, trpcClient } from "@/utils/trpc";
 
 export default function DischargePage() {
-	const { data: discharges, isLoading } = useQuery(trpc.discharge.list.queryOptions());
+	const [createOpen, setCreateOpen] = useState(false);
+	const { data: discharges, isLoading, refetch } = useQuery(trpc.discharge.list.queryOptions());
+	const { data: patients } = useQuery(trpc.patients.list.queryOptions());
+	const { data: appointments } = useQuery(trpc.appointments.list.queryOptions());
+
+	const createDischarge = useMutation({
+		mutationFn: (data: Parameters<typeof trpcClient.discharge.create.mutate>[0]) =>
+			trpcClient.discharge.create.mutate(data),
+		onSuccess: () => {
+			toast.success("Discharge summary created");
+			setCreateOpen(false);
+			refetch();
+		},
+		onError: (error: Error) => toast.error(error.message || "Failed to create discharge"),
+	});
+
+	const patientsList = (patients || []).map((p) => {
+		if ("patient" in p && p.patient) {
+			return { id: p.patient.id, name: p.patient.name };
+		}
+		if ("patientId" in p) {
+			return { id: p.patientId, name: "Unknown" };
+		}
+		return { id: "", name: "Unknown" };
+	});
+
+	const appointmentsList =
+		appointments?.map((a) => ({
+			id: a.id,
+			patientName: "Patient",
+			date: new Date(a.scheduledAt).toLocaleString(),
+		})) || [];
 
 	return (
 		<DashboardPageShell
 			header={
 				<PageHeader
 					actions={
-						<Button asChild>
-							<Link href="/dashboard/clinician/discharge/new">
-								<Plus className="h-4 w-4" />
-								New Discharge Summary
-							</Link>
-						</Button>
+						<FormDialog
+							maxWidthClassName="sm:max-w-3xl"
+							onOpenChange={setCreateOpen}
+							open={createOpen}
+							trigger={
+								<Button type="button">
+									<Plus className="h-4 w-4" />
+									New Discharge Summary
+								</Button>
+							}
+						>
+							<DischargeForm
+								appointments={appointmentsList}
+								onCancel={() => setCreateOpen(false)}
+								onSubmit={(data) => createDischarge.mutate(data)}
+								patients={patientsList}
+							/>
+						</FormDialog>
 					}
 					breadcrumbItems={[
 						{ label: "Dashboard", href: "/dashboard" },

@@ -2,10 +2,11 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { DatePicker } from "@/components/ui/date-picker";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
 import { TimePicker, type TimePickerValue } from "@/components/ui/time-picker";
 import { combineDateAndTime, toDate } from "@/lib/date-utils";
 
@@ -60,71 +61,87 @@ export function AppointmentForm({
 	};
 
 	return (
-		<form className="space-y-4" onSubmit={handleSubmit}>
-			<div className="space-y-2">
-				<Label htmlFor="patient">Patient</Label>
-				<Select
-					onValueChange={(value) => setFormData({ ...formData, patientId: value })}
-					value={formData.patientId}
-				>
-					<SelectTrigger id="patient">
-						<SelectValue placeholder="Select patient" />
-					</SelectTrigger>
-					<SelectContent>
-						{patients.map((patient) => (
-							<SelectItem key={patient.id} value={patient.id}>
-								{patient.name}
-							</SelectItem>
-						))}
-					</SelectContent>
-				</Select>
-			</div>
+		<form className="w-full" onSubmit={handleSubmit}>
+			<Card className="w-full">
+				<CardHeader>
+					<CardTitle>New Appointment</CardTitle>
+					<CardDescription>Schedule a visit by selecting the patient, clinician, and time.</CardDescription>
+				</CardHeader>
+				<CardContent className="w-full space-y-6">
+					<div className="flex items-center justify-start gap-6">
+						<div className="space-y-2">
+							<Label htmlFor="patient">Patient</Label>
+							<Select
+								onValueChange={(value) => setFormData({ ...formData, patientId: value })}
+								value={formData.patientId}
+							>
+								<SelectTrigger id="patient">
+									<SelectValue placeholder="Select patient" />
+								</SelectTrigger>
+								<SelectContent>
+									{patients.map((patient) => (
+										<SelectItem key={patient.id} value={patient.id}>
+											{patient.name}
+										</SelectItem>
+									))}
+								</SelectContent>
+							</Select>
+						</div>
 
-			<div className="space-y-2">
-				<Label htmlFor="clinician">Clinician</Label>
-				<Select
-					onValueChange={(value) => setFormData({ ...formData, clinicianId: value })}
-					value={formData.clinicianId}
-				>
-					<SelectTrigger id="clinician">
-						<SelectValue placeholder="Select clinician" />
-					</SelectTrigger>
-					<SelectContent>
-						{clinicians.map((clinician) => (
-							<SelectItem key={clinician.id} value={clinician.id}>
-								{clinician.name}
-							</SelectItem>
-						))}
-					</SelectContent>
-				</Select>
-			</div>
+						<div className="space-y-2">
+							<Label htmlFor="clinician">Clinician</Label>
+							<Select
+								onValueChange={(value) => setFormData({ ...formData, clinicianId: value })}
+								value={formData.clinicianId}
+							>
+								<SelectTrigger id="clinician">
+									<SelectValue placeholder="Select clinician" />
+								</SelectTrigger>
+								<SelectContent>
+									{clinicians.map((clinician) => (
+										<SelectItem key={clinician.id} value={clinician.id}>
+											{clinician.name}
+										</SelectItem>
+									))}
+								</SelectContent>
+							</Select>
+						</div>
+					</div>
 
-			<div className="space-y-2">
-				<Label htmlFor="scheduled-date">Scheduled Date & Time</Label>
-				<div className="grid grid-cols-2 gap-4">
-					<DatePicker id="scheduled-date" onChange={setDate} value={date} />
-					<TimePicker id="scheduled-time" onChange={(v) => setTime(v)} value={time} />
-				</div>
-			</div>
+					<div className="space-y-2">
+						<Label htmlFor="scheduled-date">Scheduled Date &amp; Time</Label>
+						<div className="grid grid-cols-1 gap-4">
+							<DatePicker id="scheduled-date" onChange={setDate} value={date} />
+							<TimePicker
+								className="rounded-md"
+								id="scheduled-time"
+								infinite={false}
+								onChange={(v) => setTime(v)}
+								twentyFourHour={false}
+								value={time}
+							/>
+						</div>
+					</div>
 
-			<div className="space-y-2">
-				<Label htmlFor="notes">Notes (Optional)</Label>
-				<Input
-					id="notes"
-					onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-					placeholder="Additional notes..."
-					value={formData.notes}
-				/>
-			</div>
-
-			<div className="flex justify-end space-x-2">
-				{onCancel && (
-					<Button onClick={onCancel} type="button" variant="outline">
-						Cancel
-					</Button>
-				)}
-				<Button type="submit">Create Appointment</Button>
-			</div>
+					<div className="space-y-2">
+						<Label htmlFor="notes">Notes (Optional)</Label>
+						<Textarea
+							id="notes"
+							onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+							placeholder="Add context for this appointment (symptoms, preferences, etc.)"
+							value={formData.notes}
+						/>
+					</div>
+				</CardContent>
+				<CardFooter className="justify-end gap-2">
+					{onCancel && (
+						<Button onClick={onCancel} type="button" variant="outline">
+							Cancel
+						</Button>
+					)}
+					<Button type="submit">Create Appointment</Button>
+				</CardFooter>
+			</Card>
 		</form>
 	);
 }

@@ -1,25 +1,41 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import type { ColumnDef } from "@tanstack/react-table";
 import { FileText, Plus } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
+import { toast } from "sonner";
 import { DataTable } from "@/components/dashboard/data-table";
 import { ListCard } from "@/components/dashboard/list-card";
 import { PageHeader } from "@/components/dashboard/page-header";
 import { DashboardPageShell } from "@/components/dashboard/page-shell";
+import { PrescriptionForm } from "@/components/dashboard/prescription-form";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { FormDialog } from "@/components/ui/form-dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { type RouterOutput, trpc } from "@/utils/trpc";
+import { type RouterOutput, trpc, trpcClient } from "@/utils/trpc";
 
 type Prescription = RouterOutput["prescriptions"]["list"][number];
 
 export default function ClinicianPrescriptionsPage() {
 	const [statusFilter, setStatusFilter] = useState<string>("all");
+	const [createOpen, setCreateOpen] = useState(false);
 
-	const { data: prescriptions, isLoading } = useQuery(trpc.prescriptions.list.queryOptions());
+	const { data: prescriptions, isLoading, refetch } = useQuery(trpc.prescriptions.list.queryOptions());
+	const { data: appointments } = useQuery(trpc.appointments.list.queryOptions());
+
+	const createPrescription = useMutation({
+		mutationFn: (data: Parameters<typeof trpcClient.prescriptions.create.mutate>[0]) =>
+			trpcClient.prescriptions.create.mutate(data),
+		onSuccess: () => {
+			toast.success("Prescription created successfully!");
+			setCreateOpen(false);
+			refetch();
+		},
+		onError: (error: Error) => toast.error(error.message || "Failed to create prescription"),
+	});
 
 	const filteredPrescriptions =
 		statusFilter === "all"
@@ -81,9 +97,26 @@ export default function ClinicianPrescriptionsPage() {
 						{/* @ts-ignore */}
 						<Link href={`/dashboard/clinician/prescriptions/${row.original.id}`}>View</Link>
 					</Button>
-					<Button asChild size="sm" variant="outline">
-						<Link href={"/dashboard/clinician/prescriptions/new"}>Renew</Link>
-					</Button>
+					<FormDialog
+						maxWidthClassName="sm:max-w-2xl"
+						trigger={
+							<Button size="sm" type="button" variant="outline">
+								Renew
+							</Button>
+						}
+					>
+						<PrescriptionForm
+							appointments={
+								appointments?.map((a) => ({
+									id: a.id,
+									patientName: a.patientId,
+									date: new Date(a.scheduledAt).toLocaleDateString(),
+								})) || []
+							}
+							onCancel={undefined}
+							onSubmit={(data) => createPrescription.mutate(data)}
+						/>
+					</FormDialog>
 				</div>
 			),
 		},
@@ -94,12 +127,29 @@ export default function ClinicianPrescriptionsPage() {
 			header={
 				<PageHeader
 					actions={
-						<Button asChild>
-							<Link href="/dashboard/clinician/prescriptions/new">
-								<Plus className="h-4 w-4" />
-								New Prescription
-							</Link>
-						</Button>
+						<FormDialog
+							maxWidthClassName="sm:max-w-2xl"
+							onOpenChange={setCreateOpen}
+							open={createOpen}
+							trigger={
+								<Button type="button">
+									<Plus className="h-4 w-4" />
+									New Prescription
+								</Button>
+							}
+						>
+							<PrescriptionForm
+								appointments={
+									appointments?.map((a) => ({
+										id: a.id,
+										patientName: a.patientId,
+										date: new Date(a.scheduledAt).toLocaleDateString(),
+									})) || []
+								}
+								onCancel={() => setCreateOpen(false)}
+								onSubmit={(data) => createPrescription.mutate(data)}
+							/>
+						</FormDialog>
 					}
 					breadcrumbItems={[
 						{ label: "Dashboard", href: "/dashboard" },

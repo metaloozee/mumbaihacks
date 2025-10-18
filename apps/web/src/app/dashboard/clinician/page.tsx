@@ -1,8 +1,11 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { Activity, Calendar, FileText, FlaskConical, Plus, UserRoundCheck, Users } from "lucide-react";
 import Link from "next/link";
+import { useState } from "react";
+import { toast } from "sonner";
+import { AppointmentForm } from "@/components/dashboard/appointment-form";
 import { AppointmentsTable } from "@/components/dashboard/appointments-table";
 import { ListCard } from "@/components/dashboard/list-card";
 import { PageHeader } from "@/components/dashboard/page-header";
@@ -10,8 +13,9 @@ import { DashboardPageShell } from "@/components/dashboard/page-shell";
 import { StatsCard } from "@/components/dashboard/stats-card";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { FormDialog } from "@/components/ui/form-dialog";
 import { authClient } from "@/lib/auth-client";
-import { trpc } from "@/utils/trpc";
+import { trpc, trpcClient } from "@/utils/trpc";
 
 type AppointmentWithPatient = {
 	id: string;
@@ -28,10 +32,53 @@ type AppointmentWithPatient = {
 export default function ClinicianDashboardPage() {
 	const { data: session } = authClient.useSession();
 	const { data: patients } = useQuery(trpc.patients.list.queryOptions());
-	const { data: appointments } = useQuery(trpc.appointments.list.queryOptions()) as {
-		data: AppointmentWithPatient[] | undefined;
-	};
+	const appointmentsQuery = useQuery(trpc.appointments.list.queryOptions());
+	const appointments = appointmentsQuery.data as AppointmentWithPatient[] | undefined;
 	const { data: medicalRecords } = useQuery(trpc.medicalRecords.list.queryOptions());
+
+	const [createOpen, setCreateOpen] = useState(false);
+	const clinicianId = session?.user?.id ?? "";
+
+	const patientsList = (patients || []).map((p) => {
+		const maybeWithNested = p as { patient?: { id: string; name: string } };
+		if (maybeWithNested.patient) {
+			return { id: maybeWithNested.patient.id, name: maybeWithNested.patient.name };
+		}
+		const maybeFlat = p as { patientId?: string };
+		if (maybeFlat.patientId) {
+			return { id: maybeFlat.patientId, name: "Unknown" };
+		}
+		return { id: "", name: "Unknown" };
+	});
+
+	const cliniciansList = clinicianId ? [{ id: clinicianId, name: "Me" }] : [];
+
+	const createAppointment = useMutation({
+		mutationFn: (data: { patientId: string; clinicianId: string; scheduledAt: string; notes?: string }) =>
+			trpcClient.appointments.create.mutate(data),
+		onSuccess: () => {
+			toast.success("Appointment created successfully!");
+			setCreateOpen(false);
+			appointmentsQuery.refetch();
+		},
+		onError: (error: Error) => {
+			toast.error(error.message || "Failed to create appointment");
+		},
+	});
+
+	const handleCreateSubmit = (formData: {
+		patientId: string;
+		clinicianId: string;
+		scheduledAt: string;
+		notes?: string;
+	}) => {
+		createAppointment.mutate({
+			patientId: formData.patientId,
+			clinicianId: formData.clinicianId,
+			scheduledAt: formData.scheduledAt,
+			notes: formData.notes,
+		});
+	};
 
 	const stats = {
 		totalPatients: patients?.length || 0,
@@ -41,25 +88,47 @@ export default function ClinicianDashboardPage() {
 	};
 
 	const RECENT_APPOINTMENTS_LIMIT = 5;
+
+	// Sort appointments by scheduled date and time (earliest first) and take the most recent ones
 	const recentAppointments =
-		appointments?.slice(0, RECENT_APPOINTMENTS_LIMIT).map((a) => ({
-			id: a.id,
-			patientName: a.patientName || "Unknown",
-			scheduledAt: a.scheduledAt,
-			status: a.status,
-		})) || [];
+		appointments
+			?.sort((a, b) => {
+				const dateA = new Date(a.scheduledAt).getTime();
+				const dateB = new Date(b.scheduledAt).getTime();
+				return dateA - dateB;
+			})
+			.slice(0, RECENT_APPOINTMENTS_LIMIT)
+			.map((a) => ({
+				id: a.id,
+				patientName: a.patientName || "Unknown",
+				scheduledAt: a.scheduledAt,
+				status: a.status,
+			})) || [];
 
 	return (
 		<DashboardPageShell
 			header={
 				<PageHeader
 					actions={
-						<Link href="/dashboard/clinician/appointments/new">
-							<Button>
-								<Plus className="h-4 w-4" />
-								New Appointment
-							</Button>
-						</Link>
+						<FormDialog
+							maxWidthClassName="sm:max-w-2xl"
+							onOpenChange={setCreateOpen}
+							open={createOpen}
+							trigger={
+								<Button type="button">
+									<Plus className="h-4 w-4" />
+									New Appointment
+								</Button>
+							}
+						>
+							<AppointmentForm
+								clinicians={cliniciansList}
+								defaultClinicianId={clinicianId}
+								onCancel={() => setCreateOpen(false)}
+								onSubmit={handleCreateSubmit}
+								patients={patientsList}
+							/>
+						</FormDialog>
 					}
 					breadcrumbItems={[{ label: "Dashboard", href: "/dashboard" }, { label: "Clinician" }]}
 					description="Here is an overview of your practice"

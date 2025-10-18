@@ -32,6 +32,13 @@ export default function PatientAppointmentsPage() {
 
 	const { data: appointments, isLoading, refetch } = useQuery(trpc.appointments.list.queryOptions());
 
+	// Sort appointments by scheduled date and time (earliest first)
+	const sortedAppointments = [...(appointments || [])].sort((a, b) => {
+		const dateA = new Date(a.scheduledAt).getTime();
+		const dateB = new Date(b.scheduledAt).getTime();
+		return dateA - dateB;
+	});
+
 	const cancelAppointment = useMutation({
 		mutationFn: (data: { id: string; status: "cancelled"; cancellationReason: string }) =>
 			trpcClient.appointments.update.mutate(data),
@@ -45,7 +52,7 @@ export default function PatientAppointmentsPage() {
 	});
 
 	const filteredAppointments =
-		statusFilter === "all" ? appointments || [] : (appointments || []).filter((apt) => apt.status === statusFilter);
+		statusFilter === "all" ? sortedAppointments : sortedAppointments.filter((apt) => apt.status === statusFilter);
 
 	const handleCancelClick = (appointment: Appointment) => {
 		setSelectedAppointment(appointment);

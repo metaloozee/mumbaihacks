@@ -2,9 +2,10 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
 
 type OrderFormData = {
 	patientId: string;
@@ -49,103 +50,114 @@ export function OrderForm({ onSubmit, onCancel, patients = [], appointments = []
 	};
 
 	return (
-		<form className="space-y-4" onSubmit={handleSubmit}>
-			<div className="space-y-2">
-				<Label htmlFor="patient">Patient</Label>
-				<Select
-					onValueChange={(value) => setFormData({ ...formData, patientId: value })}
-					value={formData.patientId}
-				>
-					<SelectTrigger id="patient">
-						<SelectValue placeholder="Select patient" />
-					</SelectTrigger>
-					<SelectContent>
-						{patients.map((patient) => (
-							<SelectItem key={patient.id} value={patient.id}>
-								{patient.name}
-							</SelectItem>
-						))}
-					</SelectContent>
-				</Select>
-			</div>
+		<form onSubmit={handleSubmit}>
+			<Card>
+				<CardHeader>
+					<CardTitle>New Order</CardTitle>
+					<CardDescription>Create a lab or imaging order with priority and details.</CardDescription>
+				</CardHeader>
+				<CardContent className="space-y-6">
+					<div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+						<div className="space-y-2">
+							<Label htmlFor="patient">Patient</Label>
+							<Select
+								onValueChange={(value) => setFormData({ ...formData, patientId: value })}
+								value={formData.patientId}
+							>
+								<SelectTrigger id="patient">
+									<SelectValue placeholder="Select patient" />
+								</SelectTrigger>
+								<SelectContent>
+									{patients.map((patient) => (
+										<SelectItem key={patient.id} value={patient.id}>
+											{patient.name}
+										</SelectItem>
+									))}
+								</SelectContent>
+							</Select>
+						</div>
 
-			<div className="space-y-2">
-				<Label htmlFor="appointment">Appointment (Optional)</Label>
-				<Select
-					onValueChange={(value) => setFormData({ ...formData, appointmentId: value })}
-					value={formData.appointmentId}
-				>
-					<SelectTrigger id="appointment">
-						<SelectValue placeholder="Select appointment" />
-					</SelectTrigger>
-					<SelectContent>
-						{appointments.map((appointment) => (
-							<SelectItem key={appointment.id} value={appointment.id}>
-								{appointment.patientName} - {appointment.date}
-							</SelectItem>
-						))}
-					</SelectContent>
-				</Select>
-			</div>
+						<div className="space-y-2">
+							<Label htmlFor="appointment">Appointment (Optional)</Label>
+							<Select
+								onValueChange={(value) => setFormData({ ...formData, appointmentId: value })}
+								value={formData.appointmentId}
+							>
+								<SelectTrigger id="appointment">
+									<SelectValue placeholder="Select appointment" />
+								</SelectTrigger>
+								<SelectContent>
+									{appointments.map((appointment) => (
+										<SelectItem key={appointment.id} value={appointment.id}>
+											{appointment.patientName} - {appointment.date}
+										</SelectItem>
+									))}
+								</SelectContent>
+							</Select>
+						</div>
+					</div>
 
-			<div className="grid grid-cols-2 gap-4">
-				<div className="space-y-2">
-					<Label htmlFor="orderType">Order Type</Label>
-					<Select
-						onValueChange={(value) => setFormData({ ...formData, orderType: value as "lab" | "imaging" })}
-						value={formData.orderType}
-					>
-						<SelectTrigger id="orderType">
-							<SelectValue placeholder="Select type" />
-						</SelectTrigger>
-						<SelectContent>
-							<SelectItem value="lab">Laboratory</SelectItem>
-							<SelectItem value="imaging">Imaging</SelectItem>
-						</SelectContent>
-					</Select>
-				</div>
+					<div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+						<div className="space-y-2">
+							<Label htmlFor="orderType">Order Type</Label>
+							<Select
+								onValueChange={(value) =>
+									setFormData({ ...formData, orderType: value as "lab" | "imaging" })
+								}
+								value={formData.orderType}
+							>
+								<SelectTrigger id="orderType">
+									<SelectValue placeholder="Select type" />
+								</SelectTrigger>
+								<SelectContent>
+									<SelectItem value="lab">Laboratory</SelectItem>
+									<SelectItem value="imaging">Imaging</SelectItem>
+								</SelectContent>
+							</Select>
+						</div>
 
-				<div className="space-y-2">
-					<Label htmlFor="priority">Priority</Label>
-					<Select
-						onValueChange={(value) =>
-							setFormData({ ...formData, priority: value as "routine" | "urgent" | "stat" })
-						}
-						value={formData.priority}
-					>
-						<SelectTrigger id="priority">
-							<SelectValue placeholder="Select priority" />
-						</SelectTrigger>
-						<SelectContent>
-							<SelectItem value="routine">Routine</SelectItem>
-							<SelectItem value="urgent">Urgent</SelectItem>
-							<SelectItem value="stat">STAT</SelectItem>
-						</SelectContent>
-					</Select>
-				</div>
-			</div>
+						<div className="space-y-2">
+							<Label htmlFor="priority">Priority</Label>
+							<Select
+								onValueChange={(value) =>
+									setFormData({ ...formData, priority: value as "routine" | "urgent" | "stat" })
+								}
+								value={formData.priority}
+							>
+								<SelectTrigger id="priority">
+									<SelectValue placeholder="Select priority" />
+								</SelectTrigger>
+								<SelectContent>
+									<SelectItem value="routine">Routine</SelectItem>
+									<SelectItem value="urgent">Urgent</SelectItem>
+									<SelectItem value="stat">STAT</SelectItem>
+								</SelectContent>
+							</Select>
+						</div>
+					</div>
 
-			<div className="space-y-2">
-				<Label htmlFor="orderDetails">Order Details</Label>
-				<Input
-					id="orderDetails"
-					onChange={(e) => setFormData({ ...formData, orderDetails: e.target.value })}
-					placeholder={getOrderDetailsPlaceholder()}
-					required
-					value={formData.orderDetails}
-				/>
-			</div>
-
-			<div className="flex justify-end space-x-2">
-				{onCancel && (
-					<Button onClick={onCancel} type="button" variant="outline">
-						Cancel
+					<div className="space-y-2">
+						<Label htmlFor="orderDetails">Order Details</Label>
+						<Textarea
+							id="orderDetails"
+							onChange={(e) => setFormData({ ...formData, orderDetails: e.target.value })}
+							placeholder={getOrderDetailsPlaceholder()}
+							required
+							value={formData.orderDetails}
+						/>
+					</div>
+				</CardContent>
+				<CardFooter className="justify-end gap-2">
+					{onCancel && (
+						<Button onClick={onCancel} type="button" variant="outline">
+							Cancel
+						</Button>
+					)}
+					<Button disabled={!formData.orderType} type="submit">
+						Create Order
 					</Button>
-				)}
-				<Button disabled={!formData.orderType} type="submit">
-					Create Order
-				</Button>
-			</div>
+				</CardFooter>
+			</Card>
 		</form>
 	);
 }

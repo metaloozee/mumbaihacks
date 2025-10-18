@@ -1,29 +1,85 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { Activity, Plus } from "lucide-react";
-import Link from "next/link";
+import { useState } from "react";
+import { toast } from "sonner";
+import { AssessmentForm } from "@/components/dashboard/assessment-form";
 import { PageHeader } from "@/components/dashboard/page-header";
 import { DashboardPageShell } from "@/components/dashboard/page-shell";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { FormDialog } from "@/components/ui/form-dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { trpc } from "@/utils/trpc";
+import { trpc, trpcClient } from "@/utils/trpc";
 
 export default function AssessmentsPage() {
-	const { data: assessments, isLoading } = useQuery(trpc.assessments.list.queryOptions());
+	const [createOpen, setCreateOpen] = useState(false);
+	const { data: assessments, isLoading, refetch } = useQuery(trpc.assessments.list.queryOptions());
+	const { data: patients } = useQuery(trpc.patients.list.queryOptions());
+	const { data: appointments } = useQuery(trpc.appointments.list.queryOptions());
+
+	const createAssessment = useMutation({
+		mutationFn: (data: Parameters<typeof trpcClient.assessments.create.mutate>[0]) =>
+			trpcClient.assessments.create.mutate(data),
+		onSuccess: () => {
+			toast.success("Assessment created successfully!");
+			setCreateOpen(false);
+			refetch();
+		},
+		onError: (error: Error) => {
+			toast.error(error.message || "Failed to create assessment");
+		},
+	});
+
+	const patientsList = (patients || []).map((p) => {
+		if ("patient" in p && p.patient) {
+			return { id: p.patient.id, name: p.patient.name };
+		}
+		if ("patientId" in p) {
+			return { id: p.patientId, name: "Unknown" };
+		}
+		return { id: "", name: "Unknown" };
+	});
+
+	const appointmentsList =
+		appointments?.map((a) => ({
+			id: a.id,
+			patientName: "Patient",
+			date: new Date(a.scheduledAt).toLocaleDateString(),
+		})) || [];
 
 	return (
 		<DashboardPageShell
 			header={
 				<PageHeader
 					actions={
-						<Button asChild>
-							<Link href="/dashboard/clinician/assessments/new">
-								<Plus className="h-4 w-4" />
-								New Assessment
-							</Link>
-						</Button>
+						<FormDialog
+							maxWidthClassName="sm:max-w-3xl"
+							onOpenChange={setCreateOpen}
+							open={createOpen}
+							trigger={
+								<Button type="button">
+									<Plus className="h-4 w-4" />
+									New Assessment
+								</Button>
+							}
+						>
+							<AssessmentForm
+								appointments={appointmentsList}
+								onCancel={() => setCreateOpen(false)}
+								onSubmit={(formData) =>
+									createAssessment.mutate({
+										patientId: formData.patientId,
+										appointmentId: formData.appointmentId,
+										chiefComplaint: formData.chiefComplaint,
+										vitalSigns: formData.vitalSigns,
+										assessmentNotes: formData.assessmentNotes,
+									})
+								}
+								patients={patientsList}
+							/>
+						</FormDialog>
 					}
 					breadcrumbItems={[
 						{ label: "Dashboard", href: "/dashboard" },

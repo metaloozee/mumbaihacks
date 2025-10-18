@@ -1,18 +1,22 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import type { ColumnDef } from "@tanstack/react-table";
 import { Plus, Search, Users } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
+import { toast } from "sonner";
+import { AppointmentForm } from "@/components/dashboard/appointment-form";
 import { DataTable } from "@/components/dashboard/data-table";
 import { ListCard } from "@/components/dashboard/list-card";
 import { PageHeader } from "@/components/dashboard/page-header";
 import { DashboardPageShell } from "@/components/dashboard/page-shell";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
+import { FormDialog } from "@/components/ui/form-dialog";
 import { Input } from "@/components/ui/input";
-import { trpc } from "@/utils/trpc";
+import { authClient } from "@/lib/auth-client";
+import { trpc, trpcClient } from "@/utils/trpc";
 
 // DO NOT use the RouterOutput type to directly infer types from the tRPC router since it returns the complete output's type structure which may include nested conditional types that is not relevant here.
 type ClinicianPatientRecord = {
@@ -31,12 +35,39 @@ const WHITESPACE_REGEX = /\s+/;
 
 export default function ClinicianPatientsPage() {
 	const [searchQuery, setSearchQuery] = useState("");
+	const { data: session } = authClient.useSession();
 
 	const { data: patients, isLoading } = useQuery(trpc.patients.list.queryOptions());
 
 	const filteredPatients = ((patients as ClinicianPatientRecord[]) || []).filter((p) =>
 		p.patient.name.toLowerCase().includes(searchQuery.toLowerCase())
 	);
+
+	const clinicianId = session?.user.id || "";
+
+	const patientsList = (patients || []).map((p) => {
+		// Normalize to { id, name }
+		const withNested = p as { patient?: { id: string; name: string } };
+		if (withNested.patient) {
+			return { id: withNested.patient.id, name: withNested.patient.name };
+		}
+		const maybeFlat = p as { patientId?: string };
+		if (maybeFlat.patientId) {
+			return { id: maybeFlat.patientId, name: "Unknown" };
+		}
+		return { id: "", name: "Unknown" };
+	});
+
+	const cliniciansList = clinicianId ? [{ id: clinicianId, name: "Me" }] : [];
+
+	const createAppointment = useMutation({
+		mutationFn: (data: { patientId: string; clinicianId: string; scheduledAt: string; notes?: string }) =>
+			trpcClient.appointments.create.mutate(data),
+		onSuccess: () => {
+			toast.success("Appointment created successfully!");
+		},
+		onError: (error: Error) => toast.error(error.message || "Failed to create appointment"),
+	});
 
 	const columns: ColumnDef<ClinicianPatientRecord>[] = [
 		{
@@ -90,12 +121,24 @@ export default function ClinicianPatientsPage() {
 							View Records
 						</Link>
 					</Button>
-					<Button asChild size="sm" variant="outline">
-						{/* @ts-ignore */}
-						<Link href={`/dashboard/clinician/appointments/new?patientId=${row.original.patientId}`}>
-							Schedule
-						</Link>
-					</Button>
+					<FormDialog
+						maxWidthClassName="sm:max-w-2xl"
+						trigger={
+							<Button size="sm" type="button" variant="outline">
+								Schedule
+							</Button>
+						}
+					>
+						<div className="mx-auto">
+							<AppointmentForm
+								clinicians={cliniciansList}
+								defaultClinicianId={clinicianId}
+								defaultPatientId={row.original.patientId}
+								onSubmit={(data) => createAppointment.mutate(data)}
+								patients={patientsList}
+							/>
+						</div>
+					</FormDialog>
 				</div>
 			),
 		},

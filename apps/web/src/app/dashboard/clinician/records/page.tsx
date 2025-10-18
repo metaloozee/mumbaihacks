@@ -1,20 +1,44 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import type { ColumnDef } from "@tanstack/react-table";
 import { FileText, Plus } from "lucide-react";
 import Link from "next/link";
+import { useState } from "react";
 import { DataTable } from "@/components/dashboard/data-table";
 import { ListCard } from "@/components/dashboard/list-card";
 import { PageHeader } from "@/components/dashboard/page-header";
 import { DashboardPageShell } from "@/components/dashboard/page-shell";
+import { MedicalRecordForm } from "@/components/dashboard/record-form";
 import { Button } from "@/components/ui/button";
-import { type RouterOutput, trpc } from "@/utils/trpc";
+import { FormDialog } from "@/components/ui/form-dialog";
+import { type RouterOutput, trpc, trpcClient } from "@/utils/trpc";
 
 type MedicalRecord = RouterOutput["medicalRecords"]["list"][number];
 
 export default function ClinicianRecordsPage() {
-	const { data: records, isLoading } = useQuery(trpc.medicalRecords.list.queryOptions());
+	const [createOpen, setCreateOpen] = useState(false);
+	const { data: records, isLoading, refetch } = useQuery(trpc.medicalRecords.list.queryOptions());
+	const { data: patients } = useQuery(trpc.patients.list.queryOptions());
+
+	const createRecord = useMutation({
+		mutationFn: (data: { patientId: string; diagnosis: string; notes?: string }) =>
+			trpcClient.medicalRecords.create.mutate(data),
+		onSuccess: () => {
+			setCreateOpen(false);
+			refetch();
+		},
+	});
+
+	const patientsList = (patients || []).map((p) => {
+		if ("patient" in p && p.patient) {
+			return { id: p.patient.id, name: p.patient.name };
+		}
+		if ("patientId" in p) {
+			return { id: p.patientId, name: "Unknown" };
+		}
+		return { id: "", name: "Unknown" };
+	});
 
 	const columns: ColumnDef<MedicalRecord>[] = [
 		{
@@ -79,12 +103,23 @@ export default function ClinicianRecordsPage() {
 			header={
 				<PageHeader
 					actions={
-						<Button asChild>
-							<Link href="/dashboard/clinician/records/new">
-								<Plus className="h-4 w-4" />
-								New Record
-							</Link>
-						</Button>
+						<FormDialog
+							maxWidthClassName="sm:max-w-xl"
+							onOpenChange={setCreateOpen}
+							open={createOpen}
+							trigger={
+								<Button type="button">
+									<Plus className="h-4 w-4" />
+									New Record
+								</Button>
+							}
+						>
+							<MedicalRecordForm
+								onCancel={() => setCreateOpen(false)}
+								onSubmit={(data) => createRecord.mutate(data)}
+								patients={patientsList}
+							/>
+						</FormDialog>
 					}
 					breadcrumbItems={[
 						{ label: "Dashboard", href: "/dashboard" },

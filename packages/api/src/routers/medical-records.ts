@@ -96,6 +96,14 @@ export const medicalRecordsRouter = router({
 				patientId: z.string(),
 				diagnosis: z.string(),
 				notes: z.string().optional(),
+				pastMedicalHistory: z.string().optional(),
+				allergies: z.string().optional(),
+				currentMedications: z.string().optional(),
+				medicationsHistory: z.string().optional(),
+				vitals: z.string().optional(),
+				symptoms: z.string().optional(),
+				treatmentRequired: z.boolean().default(false),
+				treatmentDetails: z.string().optional(),
 			})
 		)
 		.mutation(async ({ ctx, input }) => {
@@ -117,6 +125,14 @@ export const medicalRecordsRouter = router({
 					clinicianId: userId,
 					diagnosis: input.diagnosis,
 					notes: input.notes,
+					pastMedicalHistory: input.pastMedicalHistory,
+					allergies: input.allergies,
+					currentMedications: input.currentMedications,
+					medicationsHistory: input.medicationsHistory,
+					vitals: input.vitals,
+					symptoms: input.symptoms,
+					treatmentRequired: input.treatmentRequired,
+					treatmentDetails: input.treatmentDetails,
 				})
 				.returning();
 
@@ -129,6 +145,14 @@ export const medicalRecordsRouter = router({
 				id: z.string(),
 				diagnosis: z.string().optional(),
 				notes: z.string().optional(),
+				pastMedicalHistory: z.string().optional(),
+				allergies: z.string().optional(),
+				currentMedications: z.string().optional(),
+				medicationsHistory: z.string().optional(),
+				vitals: z.string().optional(),
+				symptoms: z.string().optional(),
+				treatmentRequired: z.boolean().optional(),
+				treatmentDetails: z.string().optional(),
 			})
 		)
 		.mutation(async ({ ctx, input }) => {

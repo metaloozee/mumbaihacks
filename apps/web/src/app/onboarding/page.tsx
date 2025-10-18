@@ -32,6 +32,11 @@ export default function OnboardingPage() {
 		preferredLanguage: string;
 		occupation: string;
 		maritalStatus: string;
+		insuranceProvider: string;
+		insurancePolicyNumber: string;
+		insuranceProviderWebsite: string;
+		insuranceClaimFormUrl: string;
+	
 	}) => {
 		createDemographics.mutate(data);
 	};

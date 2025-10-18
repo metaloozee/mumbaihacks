@@ -1,5 +1,6 @@
-import { index, integer, jsonb, pgEnum, pgTable, text, timestamp, unique } from "drizzle-orm/pg-core";
+import { boolean, index, integer, jsonb, pgEnum, pgTable, text, timestamp, unique } from "drizzle-orm/pg-core";
 import { user } from "./auth";
+import { PassThrough } from "stream";
 
 export const appointmentStatusEnum = pgEnum("appointment_status", ["pending", "confirmed", "completed", "cancelled"]);
 
@@ -65,7 +66,15 @@ export const medicalRecord = pgTable("medical_record", {
 	clinicianId: text("clinician_id")
 		.notNull()
 		.references(() => user.id, { onDelete: "restrict" }),
+	pastMedicalHistory: text("past_medical_history"),
+	allergies: text("allergies"),
+	currentMedications: text("current_medications"),
+	medicationsHistory: text("medications_history"),
+	vitals: text("vitals"),
+	symptoms: text("symptoms"),
 	diagnosis: text("diagnosis").notNull(),
+	treatmentRequired: boolean("treatment_required").notNull().default(false),
+	treatmentDetails: text("treatment_details"),
 	notes: text("notes"),
 	createdAt: timestamp("created_at").notNull().defaultNow(),
 	updatedAt: timestamp("updated_at").notNull().defaultNow(),
@@ -118,6 +127,10 @@ export const patientDemographics = pgTable(
 		preferredLanguage: text("preferred_language").notNull().default("English"),
 		occupation: text("occupation"),
 		maritalStatus: text("marital_status"),
+		insuranceProvider: text("insurance_provider"),
+		insurancePolicyNumber: text("insurance_policy_number"),
+		insuranceProviderWebsite: text("insurance_provider_website"),
+		insuranceClaimFormUrl: text("insurance_claim_form_url"),
 		createdAt: timestamp("created_at").notNull().defaultNow(),
 		updatedAt: timestamp("updated_at").notNull().defaultNow(),
 	},

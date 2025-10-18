@@ -20,6 +20,11 @@ type OnboardingFormData = {
 	preferredLanguage: string;
 	occupation: string;
 	maritalStatus: string;
+	insuranceProvider: string;
+	insurancePolicyNumber: string;
+	insuranceProviderWebsite: string;
+	insuranceClaimFormUrl: string;
+
 };
 
 type OnboardingFormProps = {
@@ -39,6 +44,10 @@ export function OnboardingForm({ onSubmit, onCancel }: OnboardingFormProps) {
 		preferredLanguage: "English",
 		occupation: "",
 		maritalStatus: "",
+		insuranceProvider: "",
+		insurancePolicyNumber: "",
+		insuranceProviderWebsite: "",
+		insuranceClaimFormUrl: "",
 	});
 	const [dob, setDob] = useState<Date | undefined>(undefined);
 	const [dobError, setDobError] = useState<string>("");
@@ -233,6 +242,46 @@ export function OnboardingForm({ onSubmit, onCancel }: OnboardingFormProps) {
 								onChange={(e) => setFormData({ ...formData, occupation: e.target.value })}
 								placeholder="Your occupation"
 								value={formData.occupation}
+							/>
+						</div>
+						
+						<div className="space-y-2">
+							<Label htmlFor="insuranceProvider">Insurance Provider (Optional)</Label>
+							<Input
+								id="insuranceProvider"
+								onChange={(e) => setFormData({ ...formData, insuranceProvider: e.target.value })}
+								placeholder="Your insurance provider"
+								value={formData.insuranceProvider}
+							/>
+						</div>
+
+						<div className="space-y-2">
+							<Label htmlFor="insurancePolicyNumber">Insurance Policy Number (Optional)</Label>
+							<Input
+								id="insurancePolicyNumber"
+								onChange={(e) => setFormData({ ...formData, insurancePolicyNumber: e.target.value })}
+								placeholder="Your insurance policy number"
+								value={formData.insurancePolicyNumber}
+							/>
+						</div>
+
+						<div className="space-y-2">
+							<Label htmlFor="insuranceProviderWebsite">Insurance Provider Website (Optional)</Label>
+							<Input
+								id="insuranceProviderWebsite"
+								onChange={(e) => setFormData({ ...formData, insuranceProviderWebsite: e.target.value })}
+								placeholder="Your insurance provider's website"
+								value={formData.insuranceProviderWebsite}
+							/>
+						</div>
+
+						<div className="space-y-2">
+							<Label htmlFor="insuranceClaimFormUrl">Insurance Claim Form URL (Optional)</Label>
+							<Input
+								id="insuranceClaimFormUrl"
+								onChange={(e) => setFormData({ ...formData, insuranceClaimFormUrl: e.target.value })}
+								placeholder="URL to your insurance claim form"
+								value={formData.insuranceClaimFormUrl}
 							/>
 						</div>
 					</div>

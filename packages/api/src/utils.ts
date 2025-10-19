@@ -24,7 +24,7 @@ export const check_and_generate_claim_autofills = async (data:{
     clinicianId: string;
 }, ctx: Context) => {
 
-    const url = "http://localhost:5678/webhook-test/check_and_generate_claim_autofills"
+    const url = "http://localhost:5678/webhook/check_and_generate_claim_autofills"
     const patientdata = await ctx.db.select().from(patientDemographics).where(eq(patientDemographics.userId, data.patientId)).limit(1);
     if (patientdata.length === 0) {
         throw new Error("Patient demographics not found")

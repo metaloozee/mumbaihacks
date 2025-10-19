@@ -31,7 +31,6 @@
     "db:migrate": "turbo -F @mumbaihacks/db db:migrate"
   },
   "dependencies": {
-    "@radix-ui/react-scroll-area": "^1.2.10",
     "dotenv": "^17.2.2",
     "zod": "^4.1.11"
   },

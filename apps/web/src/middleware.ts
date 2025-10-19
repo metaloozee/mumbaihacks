@@ -2,7 +2,6 @@ import { auth } from "@mumbaihacks/auth";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import { createServerCaller } from "@/server/trpc";
-import { user } from "@mumbaihacks/db";
 
 export async function middleware(request: NextRequest) {
 	const { pathname } = request.nextUrl;
@@ -13,6 +12,18 @@ export async function middleware(request: NextRequest) {
 		headers: request.headers,
 	});
 
+	const record = session?.user ? await caller.patients.getDemographics(({ userId: session.user.id })) : null;
+	
+
+	if (pathname.startsWith("/onboarding")) {
+		if (!session?.user) {
+			return NextResponse.redirect(new URL("/login", request.url));
+		}
+		if (record || session.user.role !== "patient") {
+			return NextResponse.redirect(new URL("/dashboard", request.url));
+		}
+	}
+
 	// Protect dashboard routes
 	if (pathname.startsWith("/dashboard")) {
 		// If no session, redirect to login
@@ -22,7 +33,6 @@ export async function middleware(request: NextRequest) {
 
 		const userRole = session.user.role;
 		if (userRole === "patient") {
-			const record = await caller.patients.getDemographics(({ userId: session.user.id }));
 			if (!record) {
 				return NextResponse.redirect(new URL("/onboarding", request.url));
 			}

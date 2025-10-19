@@ -1,6 +1,5 @@
 import { boolean, index, integer, jsonb, pgEnum, pgTable, text, timestamp, unique } from "drizzle-orm/pg-core";
 import { user } from "./auth";
-import { PassThrough } from "stream";
 
 export const appointmentStatusEnum = pgEnum("appointment_status", ["pending", "confirmed", "completed", "cancelled"]);
 

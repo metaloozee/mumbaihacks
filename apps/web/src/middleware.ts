@@ -12,14 +12,17 @@ export async function middleware(request: NextRequest) {
 		headers: request.headers,
 	});
 
-	const record = session?.user ? await caller.patients.getDemographics(({ userId: session.user.id })) : null;
 	
-
+	
 	if (pathname.startsWith("/onboarding")) {
 		if (!session?.user) {
 			return NextResponse.redirect(new URL("/login", request.url));
 		}
-		if (record || session.user.role !== "patient") {
+		if (session.user.role !== "patient") {
+			return NextResponse.redirect(new URL("/dashboard", request.url));
+		}
+		const record = await caller.patients.getDemographics(({ userId: session.user.id }))
+		if (record) {
 			return NextResponse.redirect(new URL("/dashboard", request.url));
 		}
 	}
@@ -33,6 +36,7 @@ export async function middleware(request: NextRequest) {
 
 		const userRole = session.user.role;
 		if (userRole === "patient") {
+			const record = await caller.patients.getDemographics(({ userId: session.user.id }))
 			if (!record) {
 				return NextResponse.redirect(new URL("/onboarding", request.url));
 			}

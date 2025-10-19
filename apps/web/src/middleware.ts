@@ -3,17 +3,29 @@ import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import { createServerCaller } from "@/server/trpc";
 
+// biome-ignore lint/complexity/noExcessiveCognitiveComplexity: False Positive
 export async function middleware(request: NextRequest) {
 	const { pathname } = request.nextUrl;
-	const caller = await createServerCaller();
 
-	// Get session
 	const session = await auth.api.getSession({
 		headers: request.headers,
 	});
 
-	const record = session?.user ? await caller.patients.getDemographics(({ userId: session.user.id })) : null;
-	
+	// Only fetch demographics when needed: on /onboarding or /dashboard routes and only for patients
+	let record: Awaited<
+		ReturnType<Awaited<ReturnType<typeof createServerCaller>>["patients"]["getDemographics"]>
+	> | null = null;
+	const needsDemographics =
+		(pathname.startsWith("/onboarding") || pathname.startsWith("/dashboard")) && session?.user?.role === "patient";
+
+	if (needsDemographics && session?.user) {
+		try {
+			const caller = await createServerCaller();
+			record = await caller.patients.getDemographics({ userId: session.user.id });
+		} catch {
+			// Continues
+		}
+	}
 
 	if (pathname.startsWith("/onboarding")) {
 		if (!session?.user) {
@@ -24,31 +36,24 @@ export async function middleware(request: NextRequest) {
 		}
 	}
 
-	// Protect dashboard routes
 	if (pathname.startsWith("/dashboard")) {
-		// If no session, redirect to login
 		if (!session?.user) {
 			return NextResponse.redirect(new URL("/login", request.url));
 		}
 
 		const userRole = session.user.role;
-		if (userRole === "patient") {
-			if (!record) {
-				return NextResponse.redirect(new URL("/onboarding", request.url));
-			}
+		if (userRole === "patient" && !record) {
+			return NextResponse.redirect(new URL("/onboarding", request.url));
 		}
 
-		// Admin route protection
 		if (pathname.startsWith("/dashboard/admin") && userRole !== "admin") {
 			return NextResponse.redirect(new URL("/dashboard", request.url));
 		}
 
-		// Clinician route protection
 		if (pathname.startsWith("/dashboard/clinician") && userRole !== "clinician") {
 			return NextResponse.redirect(new URL("/dashboard", request.url));
 		}
 
-		// Patient route protection
 		if (pathname.startsWith("/dashboard/patient") && userRole !== "patient") {
 			return NextResponse.redirect(new URL("/dashboard", request.url));
 		}

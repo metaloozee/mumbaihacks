@@ -36,23 +36,20 @@ export default function OnboardingPage() {
 		insurancePolicyNumber: string;
 		insuranceProviderWebsite: string;
 		insuranceClaimFormUrl: string;
-	
 	}) => {
 		createDemographics.mutate(data);
 	};
 
 	return (
 		<main className="container mx-auto max-w-4xl py-10">
-			<div className="mb-8">
-				<h1 className="font-bold text-3xl">Welcome! Complete Your Profile</h1>
-				<p className="mt-2 text-muted-foreground">
-					Please provide some information to help us serve you better.
+			<header className="mb-8">
+				<h1 className="font-bold text-3xl tracking-tight">Welcome! Complete Your Profile</h1>
+				<p className="mt-2 text-muted-foreground text-sm">
+					Please provide some information to help us serve you better. It takes just a couple of minutes.
 				</p>
-			</div>
+			</header>
 
-			<div className="rounded-lg border bg-card p-6">
-				<OnboardingForm onSubmit={handleSubmit} />
-			</div>
+			<OnboardingForm isLoading={createDemographics.isPending} onSubmit={handleSubmit} />
 		</main>
 	);
 }

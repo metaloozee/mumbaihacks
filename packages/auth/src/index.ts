@@ -14,6 +14,7 @@ export const auth = betterAuth({
 			role: {
 				type: "string",
 				input: false,
+				required: false,
 				defaultValue: "patient",
 			},
 		},
@@ -44,6 +45,4 @@ export const auth = betterAuth({
 	},
 });
 
-export type Auth = typeof auth;
 export type Session = typeof auth.$Infer.Session;
-export type User = typeof auth.$Infer.Session.user;

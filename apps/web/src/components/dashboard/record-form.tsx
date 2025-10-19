@@ -73,14 +73,12 @@ export function MedicalRecordForm({
 
 	return (
 		<form onSubmit={handleSubmit}>
-			<Card className="w-full max-h-[80vh]">
-					
+			<Card className="max-h-[80vh] w-full">
 				<CardHeader>
 					<CardTitle>New Medical Record</CardTitle>
 					<CardDescription>Document a diagnosis and optional clinical notes.</CardDescription>
 				</CardHeader>
 				<CardContent className="space-y-6 overflow-auto">
-
 					<div className="space-y-2">
 						<Label htmlFor="patient">
 							Patient <span className="text-destructive">*</span>
@@ -189,16 +187,16 @@ export function MedicalRecordForm({
 						/>
 					</div>
 
-
 					<div className="space-y-2">
 						<Label htmlFor="treatmentRequired">
 							Treatment Required <span className="text-destructive">*</span>
 						</Label>
-						<Select onValueChange={(value) => setFormData({ ...formData, treatmentRequired: value === "yes" })} value={formData.treatmentRequired ? "yes" : "no"}>
+						<Select
+							onValueChange={(value) => setFormData({ ...formData, treatmentRequired: value === "yes" })}
+							value={formData.treatmentRequired ? "yes" : "no"}
+						>
 							<SelectTrigger id="treatmentRequired">
-								<SelectValue
-									placeholder={"Select an option"}
-								/>
+								<SelectValue placeholder={"Select an option"} />
 							</SelectTrigger>
 							<SelectContent>
 								<SelectItem value="yes">Yes</SelectItem>
@@ -209,11 +207,11 @@ export function MedicalRecordForm({
 					<div className="space-y-2">
 						<Label htmlFor="treatmentDetails">Treatment Details</Label>
 						<Textarea
+							disabled={!formData.treatmentRequired}
 							id="treatmentDetails"
 							onChange={(e) => setFormData({ ...formData, treatmentDetails: e.target.value })}
 							placeholder="Enter treatment details..."
 							value={formData.treatmentDetails}
-							disabled={!formData.treatmentRequired}
 						/>
 					</div>
 				</CardContent>

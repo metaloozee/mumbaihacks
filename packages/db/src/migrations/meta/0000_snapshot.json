@@ -93,12 +93,8 @@
           "name": "account_user_id_user_id_fk",
           "tableFrom": "account",
           "tableTo": "user",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -168,12 +164,8 @@
           "name": "session_user_id_user_id_fk",
           "tableFrom": "session",
           "tableTo": "user",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -183,9 +175,7 @@
         "session_token_unique": {
           "name": "session_token_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "token"
-          ]
+          "columns": ["token"]
         }
       },
       "policies": {},
@@ -254,9 +244,7 @@
         "user_email_unique": {
           "name": "user_email_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "email"
-          ]
+          "columns": ["email"]
         }
       },
       "policies": {},
@@ -427,12 +415,8 @@
           "name": "appointment_patient_id_user_id_fk",
           "tableFrom": "appointment",
           "tableTo": "user",
-          "columnsFrom": [
-            "patient_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["patient_id"],
+          "columnsTo": ["id"],
           "onDelete": "restrict",
           "onUpdate": "no action"
         },
@@ -440,12 +424,8 @@
           "name": "appointment_clinician_id_user_id_fk",
           "tableFrom": "appointment",
           "tableTo": "user",
-          "columnsFrom": [
-            "clinician_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["clinician_id"],
+          "columnsTo": ["id"],
           "onDelete": "restrict",
           "onUpdate": "no action"
         }
@@ -499,12 +479,8 @@
           "name": "clinician_patient_clinician_id_user_id_fk",
           "tableFrom": "clinician_patient",
           "tableTo": "user",
-          "columnsFrom": [
-            "clinician_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["clinician_id"],
+          "columnsTo": ["id"],
           "onDelete": "restrict",
           "onUpdate": "no action"
         },
@@ -512,12 +488,8 @@
           "name": "clinician_patient_patient_id_user_id_fk",
           "tableFrom": "clinician_patient",
           "tableTo": "user",
-          "columnsFrom": [
-            "patient_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["patient_id"],
+          "columnsTo": ["id"],
           "onDelete": "restrict",
           "onUpdate": "no action"
         }
@@ -527,10 +499,7 @@
         "clinician_patient_clinician_id_patient_id_unique": {
           "name": "clinician_patient_clinician_id_patient_id_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "clinician_id",
-            "patient_id"
-          ]
+          "columns": ["clinician_id", "patient_id"]
         }
       },
       "policies": {},
@@ -653,12 +622,8 @@
           "name": "discharge_summary_patient_id_user_id_fk",
           "tableFrom": "discharge_summary",
           "tableTo": "user",
-          "columnsFrom": [
-            "patient_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["patient_id"],
+          "columnsTo": ["id"],
           "onDelete": "restrict",
           "onUpdate": "no action"
         },
@@ -666,12 +631,8 @@
           "name": "discharge_summary_clinician_id_user_id_fk",
           "tableFrom": "discharge_summary",
           "tableTo": "user",
-          "columnsFrom": [
-            "clinician_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["clinician_id"],
+          "columnsTo": ["id"],
           "onDelete": "restrict",
           "onUpdate": "no action"
         },
@@ -679,12 +640,8 @@
           "name": "discharge_summary_appointment_id_appointment_id_fk",
           "tableFrom": "discharge_summary",
           "tableTo": "appointment",
-          "columnsFrom": [
-            "appointment_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["appointment_id"],
+          "columnsTo": ["id"],
           "onDelete": "set null",
           "onUpdate": "no action"
         }
@@ -808,12 +765,8 @@
           "name": "initial_assessment_patient_id_user_id_fk",
           "tableFrom": "initial_assessment",
           "tableTo": "user",
-          "columnsFrom": [
-            "patient_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["patient_id"],
+          "columnsTo": ["id"],
           "onDelete": "restrict",
           "onUpdate": "no action"
         },
@@ -821,12 +774,8 @@
           "name": "initial_assessment_clinician_id_user_id_fk",
           "tableFrom": "initial_assessment",
           "tableTo": "user",
-          "columnsFrom": [
-            "clinician_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["clinician_id"],
+          "columnsTo": ["id"],
           "onDelete": "restrict",
           "onUpdate": "no action"
         },
@@ -834,12 +783,8 @@
           "name": "initial_assessment_appointment_id_appointment_id_fk",
           "tableFrom": "initial_assessment",
           "tableTo": "appointment",
-          "columnsFrom": [
-            "appointment_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["appointment_id"],
+          "columnsTo": ["id"],
           "onDelete": "set null",
           "onUpdate": "no action"
         }
@@ -974,12 +919,8 @@
           "name": "medical_order_patient_id_user_id_fk",
           "tableFrom": "medical_order",
           "tableTo": "user",
-          "columnsFrom": [
-            "patient_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["patient_id"],
+          "columnsTo": ["id"],
           "onDelete": "restrict",
           "onUpdate": "no action"
         },
@@ -987,12 +928,8 @@
           "name": "medical_order_clinician_id_user_id_fk",
           "tableFrom": "medical_order",
           "tableTo": "user",
-          "columnsFrom": [
-            "clinician_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["clinician_id"],
+          "columnsTo": ["id"],
           "onDelete": "restrict",
           "onUpdate": "no action"
         },
@@ -1000,12 +937,8 @@
           "name": "medical_order_appointment_id_appointment_id_fk",
           "tableFrom": "medical_order",
           "tableTo": "appointment",
-          "columnsFrom": [
-            "appointment_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["appointment_id"],
+          "columnsTo": ["id"],
           "onDelete": "set null",
           "onUpdate": "no action"
         }
@@ -1120,12 +1053,8 @@
           "name": "medical_record_patient_id_user_id_fk",
           "tableFrom": "medical_record",
           "tableTo": "user",
-          "columnsFrom": [
-            "patient_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["patient_id"],
+          "columnsTo": ["id"],
           "onDelete": "restrict",
           "onUpdate": "no action"
         },
@@ -1133,12 +1062,8 @@
           "name": "medical_record_clinician_id_user_id_fk",
           "tableFrom": "medical_record",
           "tableTo": "user",
-          "columnsFrom": [
-            "clinician_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["clinician_id"],
+          "columnsTo": ["id"],
           "onDelete": "restrict",
           "onUpdate": "no action"
         }
@@ -1226,12 +1151,8 @@
           "name": "order_result_order_id_medical_order_id_fk",
           "tableFrom": "order_result",
           "tableTo": "medical_order",
-          "columnsFrom": [
-            "order_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["order_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -1380,12 +1301,8 @@
           "name": "patient_demographics_user_id_user_id_fk",
           "tableFrom": "patient_demographics",
           "tableTo": "user",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -1395,9 +1312,7 @@
         "patient_demographics_user_id_unique": {
           "name": "patient_demographics_user_id_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "user_id"
-          ]
+          "columns": ["user_id"]
         }
       },
       "policies": {},
@@ -1508,12 +1423,8 @@
           "name": "prescription_appointment_id_appointment_id_fk",
           "tableFrom": "prescription",
           "tableTo": "appointment",
-          "columnsFrom": [
-            "appointment_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["appointment_id"],
+          "columnsTo": ["id"],
           "onDelete": "restrict",
           "onUpdate": "no action"
         },
@@ -1521,12 +1432,8 @@
           "name": "prescription_prescriber_id_user_id_fk",
           "tableFrom": "prescription",
           "tableTo": "user",
-          "columnsFrom": [
-            "prescriber_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["prescriber_id"],
+          "columnsTo": ["id"],
           "onDelete": "restrict",
           "onUpdate": "no action"
         }
@@ -1542,58 +1449,32 @@
     "public.user_role": {
       "name": "user_role",
       "schema": "public",
-      "values": [
-        "patient",
-        "clinician",
-        "admin"
-      ]
+      "values": ["patient", "clinician", "admin"]
     },
     "public.appointment_status": {
       "name": "appointment_status",
       "schema": "public",
-      "values": [
-        "pending",
-        "confirmed",
-        "completed",
-        "cancelled"
-      ]
+      "values": ["pending", "confirmed", "completed", "cancelled"]
     },
     "public.order_priority": {
       "name": "order_priority",
       "schema": "public",
-      "values": [
-        "routine",
-        "urgent",
-        "stat"
-      ]
+      "values": ["routine", "urgent", "stat"]
     },
     "public.order_status": {
       "name": "order_status",
       "schema": "public",
-      "values": [
-        "pending",
-        "in-progress",
-        "completed",
-        "cancelled"
-      ]
+      "values": ["pending", "in-progress", "completed", "cancelled"]
     },
     "public.order_type": {
       "name": "order_type",
       "schema": "public",
-      "values": [
-        "lab",
-        "imaging"
-      ]
+      "values": ["lab", "imaging"]
     },
     "public.prescription_status": {
       "name": "prescription_status",
       "schema": "public",
-      "values": [
-        "active",
-        "expired",
-        "filled",
-        "cancelled"
-      ]
+      "values": ["active", "expired", "filled", "cancelled"]
     }
   },
   "schemas": {},

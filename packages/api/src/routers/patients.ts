@@ -290,7 +290,6 @@ export const patientsRouter = router({
 					insurancePolicyNumber: input.insurancePolicyNumber,
 					insuranceProviderWebsite: input.insuranceProviderWebsite,
 					insuranceClaimFormUrl: input.insuranceClaimFormUrl,
-
 				})
 				.returning();
 
@@ -314,7 +313,6 @@ export const patientsRouter = router({
 				insurancePolicyNumber: z.string().optional(),
 				insuranceProviderWebsite: z.string().optional(),
 				insuranceClaimFormUrl: z.string().optional(),
-				
 			})
 		)
 		.mutation(async ({ ctx, input }) => {

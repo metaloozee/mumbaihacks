@@ -15,6 +15,9 @@ type DatePickerProps = {
 	placeholder?: string;
 	className?: string;
 	buttonClassName?: string;
+	fromYear?: number;
+	toYear?: number;
+	"aria-describedby"?: string;
 };
 
 export function DatePicker({
@@ -24,6 +27,9 @@ export function DatePicker({
 	placeholder = "Pick a date",
 	className,
 	buttonClassName,
+	fromYear = 2015,
+	toYear = 2035,
+	"aria-describedby": ariaDescribedBy,
 }: DatePickerProps) {
 	const [open, setOpen] = React.useState(false);
 	const [date, setDate] = React.useState<Date | undefined>(value);
@@ -43,6 +49,7 @@ export function DatePicker({
 			<Popover onOpenChange={setOpen} open={open}>
 				<PopoverTrigger asChild>
 					<Button
+						aria-describedby={ariaDescribedBy}
 						aria-label="Date picker"
 						className={cn(
 							"w-full justify-start text-left font-normal data-[empty=true]:text-muted-foreground",
@@ -71,11 +78,11 @@ export function DatePicker({
 				<PopoverContent className="w-auto p-0">
 					<Calendar
 						captionLayout="dropdown"
-						fromYear={2015}
+						fromYear={fromYear}
 						mode="single"
 						onSelect={handleSelect}
 						selected={date}
-						toYear={2035}
+						toYear={toYear}
 					/>
 				</PopoverContent>
 			</Popover>

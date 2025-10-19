@@ -1,5 +1,6 @@
 "use client";
 
+import { Loader2 } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -24,15 +25,15 @@ type OnboardingFormData = {
 	insurancePolicyNumber: string;
 	insuranceProviderWebsite: string;
 	insuranceClaimFormUrl: string;
-
 };
 
 type OnboardingFormProps = {
 	onSubmit?: (data: OnboardingFormData) => void;
 	onCancel?: () => void;
+	isLoading?: boolean;
 };
 
-export function OnboardingForm({ onSubmit, onCancel }: OnboardingFormProps) {
+export function OnboardingForm({ onSubmit, onCancel, isLoading = false }: OnboardingFormProps) {
 	const [formData, setFormData] = useState<OnboardingFormData>({
 		dateOfBirth: "",
 		gender: "",
@@ -74,31 +75,53 @@ export function OnboardingForm({ onSubmit, onCancel }: OnboardingFormProps) {
 		}
 	};
 
-	const isFormValid = !!(dob ?? toDate(formData.dateOfBirth));
+	const isFormValid = !!(dob ?? toDate(formData.dateOfBirth)) && !!formData.gender;
 
 	return (
 		<form onSubmit={handleSubmit}>
-			<Card>
+			<Card className="shadow-sm">
 				<CardHeader>
 					<CardTitle>Patient Onboarding</CardTitle>
-					<CardDescription>Provide personal, contact, and medical background information.</CardDescription>
+					<CardDescription>
+						Provide personal, contact, and medical background information to tailor your care.
+					</CardDescription>
 				</CardHeader>
-				<CardContent className="space-y-6">
-					<div className="space-y-4">
-						<h3 className="font-medium text-lg">Personal Information</h3>
+				<CardContent className="space-y-8">
+					<fieldset className="space-y-4">
+						<legend className="sr-only">Personal Information</legend>
+						<h3 className="font-semibold text-lg">Personal Information</h3>
+						<p className="text-muted-foreground text-sm">
+							We use this to confirm your identity and personalize your experience.
+						</p>
 						<div className="grid grid-cols-1 gap-4 md:grid-cols-2">
 							<div className="space-y-2">
 								<Label htmlFor="dateOfBirth">
 									Date of Birth <span className="text-destructive">*</span>
 								</Label>
-								<DatePicker id="dateOfBirth" onChange={handleDobChange} value={dob} />
-								{dobError && <p className="text-destructive text-sm">{dobError}</p>}
-							</div>
-
+								<DatePicker
+									aria-describedby={dobError ? "dob-error" : undefined}
+									buttonClassName={isLoading ? "opacity-50 cursor-not-allowed" : ""}
+									fromYear={1920}
+									id="dateOfBirth"
+									onChange={handleDobChange}
+									placeholder="Select your date of birth"
+									toYear={new Date().getFullYear()}
+									value={dob}
+								/>
+								{dobError && (
+									<p className="text-destructive text-sm" id="dob-error" role="alert">
+										{dobError}
+									</p>
+								)}
+							</div>{" "}
 							<div className="space-y-2">
-								<Label htmlFor="gender">Gender</Label>
+								<Label htmlFor="gender">
+									Gender <span className="text-destructive">*</span>
+								</Label>
 								<Select
+									disabled={isLoading}
 									onValueChange={(value) => setFormData({ ...formData, gender: value })}
+									required
 									value={formData.gender}
 								>
 									<SelectTrigger id="gender">
@@ -112,24 +135,32 @@ export function OnboardingForm({ onSubmit, onCancel }: OnboardingFormProps) {
 									</SelectContent>
 								</Select>
 							</div>
-						</div>
-
+						</div>{" "}
 						<div className="grid grid-cols-1 gap-4 md:grid-cols-2">
 							<div className="space-y-2">
-								<Label htmlFor="phone">Phone Number</Label>
+								<Label htmlFor="phone">
+									Phone Number <span className="text-destructive">*</span>
+								</Label>
 								<Input
+									autoComplete="tel"
+									disabled={isLoading}
 									id="phone"
+									inputMode="tel"
 									onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
 									placeholder="+1 (555) 000-0000"
 									required
 									type="tel"
 									value={formData.phone}
 								/>
+								<p className="text-muted-foreground text-xs">
+									We’ll only use this for important updates.
+								</p>
 							</div>
 
 							<div className="space-y-2">
 								<Label htmlFor="preferredLanguage">Preferred Language</Label>
 								<Select
+									disabled={isLoading}
 									onValueChange={(value) => setFormData({ ...formData, preferredLanguage: value })}
 									value={formData.preferredLanguage}
 								>
@@ -147,10 +178,13 @@ export function OnboardingForm({ onSubmit, onCancel }: OnboardingFormProps) {
 								</Select>
 							</div>
 						</div>
-
 						<div className="space-y-2">
-							<Label htmlFor="address">Address</Label>
+							<Label htmlFor="address">
+								Address <span className="text-destructive">*</span>
+							</Label>
 							<Input
+								autoComplete="street-address"
+								disabled={isLoading}
 								id="address"
 								onChange={(e) => setFormData({ ...formData, address: e.target.value })}
 								placeholder="Street address, City, State, ZIP"
@@ -158,14 +192,24 @@ export function OnboardingForm({ onSubmit, onCancel }: OnboardingFormProps) {
 								value={formData.address}
 							/>
 						</div>
-					</div>
+					</fieldset>
 
-					<div className="space-y-4">
-						<h3 className="font-medium text-lg">Emergency Contact</h3>
+					<hr className="border-border/60" />
+
+					<fieldset className="space-y-4">
+						<legend className="sr-only">Emergency Contact</legend>
+						<h3 className="font-semibold text-lg">Emergency Contact</h3>
+						<p className="text-muted-foreground text-sm">
+							We’ll reach out to this person in case of an emergency.
+						</p>
 						<div className="grid grid-cols-1 gap-4 md:grid-cols-2">
 							<div className="space-y-2">
-								<Label htmlFor="emergencyContactName">Contact Name</Label>
+								<Label htmlFor="emergencyContactName">
+									Contact Name <span className="text-destructive">*</span>
+								</Label>
 								<Input
+									autoComplete="name"
+									disabled={isLoading}
 									id="emergencyContactName"
 									onChange={(e) => setFormData({ ...formData, emergencyContactName: e.target.value })}
 									placeholder="Full name"
@@ -175,9 +219,14 @@ export function OnboardingForm({ onSubmit, onCancel }: OnboardingFormProps) {
 							</div>
 
 							<div className="space-y-2">
-								<Label htmlFor="emergencyContactPhone">Contact Phone</Label>
+								<Label htmlFor="emergencyContactPhone">
+									Contact Phone <span className="text-destructive">*</span>
+								</Label>
 								<Input
+									autoComplete="tel"
+									disabled={isLoading}
 									id="emergencyContactPhone"
+									inputMode="tel"
 									onChange={(e) =>
 										setFormData({ ...formData, emergencyContactPhone: e.target.value })
 									}
@@ -188,14 +237,21 @@ export function OnboardingForm({ onSubmit, onCancel }: OnboardingFormProps) {
 								/>
 							</div>
 						</div>
-					</div>
+					</fieldset>
 
-					<div className="space-y-4">
-						<h3 className="font-medium text-lg">Medical & Social Information</h3>
+					<hr className="border-border/60" />
+
+					<fieldset className="space-y-4">
+						<legend className="sr-only">Medical and Social Information</legend>
+						<h3 className="font-semibold text-lg">Medical & Social Information</h3>
+						<p className="text-muted-foreground text-sm">
+							These details help clinicians understand your background. All fields here are optional.
+						</p>
 						<div className="grid grid-cols-1 gap-4 md:grid-cols-2">
 							<div className="space-y-2">
 								<Label htmlFor="bloodType">Blood Type (Optional)</Label>
 								<Select
+									disabled={isLoading}
 									onValueChange={(value) => setFormData({ ...formData, bloodType: value })}
 									value={formData.bloodType}
 								>
@@ -218,6 +274,7 @@ export function OnboardingForm({ onSubmit, onCancel }: OnboardingFormProps) {
 							<div className="space-y-2">
 								<Label htmlFor="maritalStatus">Marital Status (Optional)</Label>
 								<Select
+									disabled={isLoading}
 									onValueChange={(value) => setFormData({ ...formData, maritalStatus: value })}
 									value={formData.maritalStatus}
 								>
@@ -238,62 +295,86 @@ export function OnboardingForm({ onSubmit, onCancel }: OnboardingFormProps) {
 						<div className="space-y-2">
 							<Label htmlFor="occupation">Occupation (Optional)</Label>
 							<Input
+								disabled={isLoading}
 								id="occupation"
 								onChange={(e) => setFormData({ ...formData, occupation: e.target.value })}
 								placeholder="Your occupation"
 								value={formData.occupation}
 							/>
 						</div>
-						
-						<div className="space-y-2">
-							<Label htmlFor="insuranceProvider">Insurance Provider (Optional)</Label>
-							<Input
-								id="insuranceProvider"
-								onChange={(e) => setFormData({ ...formData, insuranceProvider: e.target.value })}
-								placeholder="Your insurance provider"
-								value={formData.insuranceProvider}
-							/>
+
+						<div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+							<div className="space-y-2">
+								<Label htmlFor="insuranceProvider">Insurance Provider (Optional)</Label>
+								<Input
+									disabled={isLoading}
+									id="insuranceProvider"
+									onChange={(e) => setFormData({ ...formData, insuranceProvider: e.target.value })}
+									placeholder="Your insurance provider"
+									value={formData.insuranceProvider}
+								/>
+							</div>
+
+							<div className="space-y-2">
+								<Label htmlFor="insurancePolicyNumber">Insurance Policy Number (Optional)</Label>
+								<Input
+									disabled={isLoading}
+									id="insurancePolicyNumber"
+									onChange={(e) =>
+										setFormData({ ...formData, insurancePolicyNumber: e.target.value })
+									}
+									placeholder="Policy number"
+									value={formData.insurancePolicyNumber}
+								/>
+							</div>
 						</div>
 
-						<div className="space-y-2">
-							<Label htmlFor="insurancePolicyNumber">Insurance Policy Number (Optional)</Label>
-							<Input
-								id="insurancePolicyNumber"
-								onChange={(e) => setFormData({ ...formData, insurancePolicyNumber: e.target.value })}
-								placeholder="Your insurance policy number"
-								value={formData.insurancePolicyNumber}
-							/>
-						</div>
+						<div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+							<div className="space-y-2">
+								<Label htmlFor="insuranceProviderWebsite">Insurance Provider Website (Optional)</Label>
+								<Input
+									disabled={isLoading}
+									id="insuranceProviderWebsite"
+									onChange={(e) =>
+										setFormData({ ...formData, insuranceProviderWebsite: e.target.value })
+									}
+									placeholder="https://example.com"
+									type="url"
+									value={formData.insuranceProviderWebsite}
+								/>
+							</div>
 
-						<div className="space-y-2">
-							<Label htmlFor="insuranceProviderWebsite">Insurance Provider Website (Optional)</Label>
-							<Input
-								id="insuranceProviderWebsite"
-								onChange={(e) => setFormData({ ...formData, insuranceProviderWebsite: e.target.value })}
-								placeholder="Your insurance provider's website"
-								value={formData.insuranceProviderWebsite}
-							/>
+							<div className="space-y-2">
+								<Label htmlFor="insuranceClaimFormUrl">Insurance Claim Form URL (Optional)</Label>
+								<Input
+									disabled={isLoading}
+									id="insuranceClaimFormUrl"
+									onChange={(e) =>
+										setFormData({ ...formData, insuranceClaimFormUrl: e.target.value })
+									}
+									placeholder="https://example.com/claim-form"
+									type="url"
+									value={formData.insuranceClaimFormUrl}
+								/>
+							</div>
 						</div>
-
-						<div className="space-y-2">
-							<Label htmlFor="insuranceClaimFormUrl">Insurance Claim Form URL (Optional)</Label>
-							<Input
-								id="insuranceClaimFormUrl"
-								onChange={(e) => setFormData({ ...formData, insuranceClaimFormUrl: e.target.value })}
-								placeholder="URL to your insurance claim form"
-								value={formData.insuranceClaimFormUrl}
-							/>
-						</div>
-					</div>
+					</fieldset>
 				</CardContent>
-				<CardFooter className="justify-end gap-2">
+				<CardFooter className="justify-end gap-2 border-t bg-card/40 py-4">
 					{onCancel && (
-						<Button onClick={onCancel} type="button" variant="outline">
+						<Button disabled={isLoading} onClick={onCancel} type="button" variant="outline">
 							Cancel
 						</Button>
 					)}
-					<Button disabled={!isFormValid} type="submit">
-						Complete Onboarding
+					<Button disabled={!isFormValid || isLoading} type="submit">
+						{isLoading ? (
+							<>
+								<Loader2 className="animate-spin" />
+								Submitting...
+							</>
+						) : (
+							"Complete Onboarding"
+						)}
 					</Button>
 				</CardFooter>
 			</Card>

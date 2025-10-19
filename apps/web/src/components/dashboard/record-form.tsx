@@ -12,6 +12,14 @@ type MedicalRecordFormData = {
 	patientId: string;
 	diagnosis: string;
 	notes?: string;
+	pastMedicalHistory: string;
+	allergies: string;
+	currentMedications: string;
+	medicationsHistory: string;
+	vitals: string;
+	symptoms: string;
+	treatmentRequired: boolean;
+	treatmentDetails: string;
 };
 
 type MedicalRecordFormProps = {
@@ -31,6 +39,14 @@ export function MedicalRecordForm({
 		patientId: defaultPatientId,
 		diagnosis: "",
 		notes: undefined,
+		pastMedicalHistory: "",
+		allergies: "",
+		currentMedications: "",
+		medicationsHistory: "",
+		vitals: "",
+		symptoms: "",
+		treatmentRequired: false,
+		treatmentDetails: "",
 	});
 	const [patientError, setPatientError] = useState<string>("");
 
@@ -57,12 +73,14 @@ export function MedicalRecordForm({
 
 	return (
 		<form onSubmit={handleSubmit}>
-			<Card>
+			<Card className="w-full max-h-[80vh]">
+					
 				<CardHeader>
 					<CardTitle>New Medical Record</CardTitle>
 					<CardDescription>Document a diagnosis and optional clinical notes.</CardDescription>
 				</CardHeader>
-				<CardContent className="space-y-6">
+				<CardContent className="space-y-6 overflow-auto">
+
 					<div className="space-y-2">
 						<Label htmlFor="patient">
 							Patient <span className="text-destructive">*</span>
@@ -113,6 +131,89 @@ export function MedicalRecordForm({
 							onChange={(e) => setFormData({ ...formData, notes: e.target.value || undefined })}
 							placeholder="Additional clinical notes..."
 							value={formData.notes ?? ""}
+						/>
+					</div>
+
+					<div className="space-y-2">
+						<Label htmlFor="pastMedicalHistory">Past Medical History</Label>
+						<Textarea
+							id="pastMedicalHistory"
+							onChange={(e) => setFormData({ ...formData, pastMedicalHistory: e.target.value })}
+							placeholder="Enter past medical history..."
+							value={formData.pastMedicalHistory}
+						/>
+					</div>
+					<div className="space-y-2">
+						<Label htmlFor="allergies">Allergies</Label>
+						<Textarea
+							id="allergies"
+							onChange={(e) => setFormData({ ...formData, allergies: e.target.value })}
+							placeholder="Enter allergies..."
+							value={formData.allergies}
+						/>
+					</div>
+					<div className="space-y-2">
+						<Label htmlFor="currentMedications">Current Medications</Label>
+						<Textarea
+							id="currentMedications"
+							onChange={(e) => setFormData({ ...formData, currentMedications: e.target.value })}
+							placeholder="Enter current medications..."
+							value={formData.currentMedications}
+						/>
+					</div>
+					<div className="space-y-2">
+						<Label htmlFor="medicationsHistory">Medications History</Label>
+						<Textarea
+							id="medicationsHistory"
+							onChange={(e) => setFormData({ ...formData, medicationsHistory: e.target.value })}
+							placeholder="Enter medications history..."
+							value={formData.medicationsHistory}
+						/>
+					</div>
+					<div className="space-y-2">
+						<Label htmlFor="vitals">Vitals</Label>
+						<Textarea
+							id="vitals"
+							onChange={(e) => setFormData({ ...formData, vitals: e.target.value })}
+							placeholder="Enter vitals..."
+							value={formData.vitals}
+						/>
+					</div>
+					<div className="space-y-2">
+						<Label htmlFor="symptoms">Symptoms</Label>
+						<Textarea
+							id="symptoms"
+							onChange={(e) => setFormData({ ...formData, symptoms: e.target.value })}
+							placeholder="Enter symptoms..."
+							value={formData.symptoms}
+						/>
+					</div>
+
+
+					<div className="space-y-2">
+						<Label htmlFor="treatmentRequired">
+							Treatment Required <span className="text-destructive">*</span>
+						</Label>
+						<Select onValueChange={(value) => setFormData({ ...formData, treatmentRequired: value === "yes" })} value={formData.treatmentRequired ? "yes" : "no"}>
+							<SelectTrigger id="treatmentRequired">
+								<SelectValue
+									placeholder={"Select an option"}
+								/>
+							</SelectTrigger>
+							<SelectContent>
+								<SelectItem value="yes">Yes</SelectItem>
+								<SelectItem value="no">No</SelectItem>
+							</SelectContent>
+						</Select>
+					</div>
+					<div className="space-y-2">
+						<Label htmlFor="treatmentDetails">Treatment Details</Label>
+						<Textarea
+							id="treatmentDetails"
+							onChange={(e) => setFormData({ ...formData, treatmentDetails: e.target.value })}
+							placeholder="Enter treatment details..."
+							value={formData.treatmentDetails}
+							disabled={!formData.treatmentRequired}
 						/>
 					</div>
 				</CardContent>

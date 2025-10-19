@@ -242,6 +242,10 @@ export const patientsRouter = router({
 				preferredLanguage: z.string().default("English"),
 				occupation: z.string().optional(),
 				maritalStatus: z.string().optional(),
+				insuranceProvider: z.string().optional(),
+				insurancePolicyNumber: z.string().optional(),
+				insuranceProviderWebsite: z.string().optional(),
+				insuranceClaimFormUrl: z.string().optional(),
 			})
 		)
 		.mutation(async ({ ctx, input }) => {
@@ -282,6 +286,11 @@ export const patientsRouter = router({
 					preferredLanguage: input.preferredLanguage,
 					occupation: input.occupation,
 					maritalStatus: input.maritalStatus,
+					insuranceProvider: input.insuranceProvider,
+					insurancePolicyNumber: input.insurancePolicyNumber,
+					insuranceProviderWebsite: input.insuranceProviderWebsite,
+					insuranceClaimFormUrl: input.insuranceClaimFormUrl,
+
 				})
 				.returning();
 
@@ -301,6 +310,11 @@ export const patientsRouter = router({
 				preferredLanguage: z.string().optional(),
 				occupation: z.string().optional(),
 				maritalStatus: z.string().optional(),
+				insuranceProvider: z.string().optional(),
+				insurancePolicyNumber: z.string().optional(),
+				insuranceProviderWebsite: z.string().optional(),
+				insuranceClaimFormUrl: z.string().optional(),
+				
 			})
 		)
 		.mutation(async ({ ctx, input }) => {

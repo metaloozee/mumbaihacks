@@ -1,14 +1,28 @@
 import { auth } from "@mumbaihacks/auth";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
+import { createServerCaller } from "@/server/trpc";
 
 export async function middleware(request: NextRequest) {
 	const { pathname } = request.nextUrl;
+	const caller = await createServerCaller();
 
 	// Get session
 	const session = await auth.api.getSession({
 		headers: request.headers,
 	});
+
+	const record = session?.user ? await caller.patients.getDemographics(({ userId: session.user.id })) : null;
+	
+
+	if (pathname.startsWith("/onboarding")) {
+		if (!session?.user) {
+			return NextResponse.redirect(new URL("/login", request.url));
+		}
+		if (record || session.user.role !== "patient") {
+			return NextResponse.redirect(new URL("/dashboard", request.url));
+		}
+	}
 
 	// Protect dashboard routes
 	if (pathname.startsWith("/dashboard")) {
@@ -18,6 +32,11 @@ export async function middleware(request: NextRequest) {
 		}
 
 		const userRole = session.user.role;
+		if (userRole === "patient") {
+			if (!record) {
+				return NextResponse.redirect(new URL("/onboarding", request.url));
+			}
+		}
 
 		// Admin route protection
 		if (pathname.startsWith("/dashboard/admin") && userRole !== "admin") {

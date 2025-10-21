@@ -44,6 +44,7 @@ export const check_and_generate_claim_autofills = async (
 		record: data,
 		patient: patientdata,
 	};
+
 	// biome-ignore lint/suspicious/noConsole: Debug logging for webhook service
 	console.log("Sending payload to claim autofill service:", payload);
 
@@ -63,7 +64,6 @@ export const check_and_generate_claim_autofills = async (
 
 		clearTimeout(timeoutId);
 
-		// Validate response
 		if (!response.ok) {
 			const errorText = await response.text().catch(() => "Unable to read error response");
 			throw new Error(
@@ -72,6 +72,7 @@ export const check_and_generate_claim_autofills = async (
 		}
 
 		const responseData = await response.json().catch(() => null);
+
 		// biome-ignore lint/suspicious/noConsole: Debug logging for webhook service
 		console.log("Response from claim autofill service:", responseData);
 		return responseData;
@@ -82,7 +83,7 @@ export const check_and_generate_claim_autofills = async (
 			if (error.name === "AbortError") {
 				throw new Error(`Claim autofill service request timed out after ${TIMEOUT_MS}ms`);
 			}
-			if (error.message.includes("fetch")) {
+			if (error instanceof TypeError) {
 				throw new Error(`Network error while contacting claim autofill service: ${error.message}`);
 			}
 		}

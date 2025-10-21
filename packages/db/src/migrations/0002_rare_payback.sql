@@ -1,0 +1,1 @@
+ALTER TABLE "medical_record" RENAME COLUMN "diagnosis_code" TO "diagnosis_codes";

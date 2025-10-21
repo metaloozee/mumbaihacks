@@ -105,11 +105,10 @@ export const medicalRecordsRouter = router({
 				symptoms: z.string().optional(),
 				treatmentRequired: z.boolean().default(false),
 				treatmentDetails: z.string().optional(),
-				diagnossisCodes: z.string().optional(),
-				treatementCodes: z.string().optional(),
-				treatementDates: z.string().optional(),
-				treatementAmounts: z.string().optional(),
-				
+				diagnosisCodes: z.string().optional(),
+				treatmentCodes: z.string().optional(),
+				treatmentDates: z.string().optional(),
+				treatmentAmounts: z.string().optional(),
 			})
 		)
 		.mutation(async ({ ctx, input }) => {
@@ -139,15 +138,23 @@ export const medicalRecordsRouter = router({
 					symptoms: input.symptoms,
 					treatmentRequired: input.treatmentRequired,
 					treatmentDetails: input.treatmentDetails,
-					diagnossisCodes: input.diagnossisCodes,
-					treatementCodes: input.treatementCodes,
-					treatementDates: input.treatementDates,
-					treatementAmounts: input.treatementAmounts,
-
+					diagnosisCodes: input.diagnosisCodes,
+					treatmentCodes: input.treatmentCodes,
+					treatmentDates: input.treatmentDates,
+					treatmentAmounts: input.treatmentAmounts,
 				})
 				.returning();
-			if (result[0]&&result[0].treatmentRequired) {	
-				check_and_generate_claim_autofills(result[0], ctx);
+			if (result[0]?.treatmentRequired) {
+				// Fire-and-forget: generate claim autofills asynchronously without blocking response
+				check_and_generate_claim_autofills(result[0], ctx).catch((error) => {
+					// biome-ignore lint/suspicious/noConsole: Error logging for background task
+					console.error("Failed to generate claim autofills for medical record:", {
+						recordId: result[0]?.id,
+						patientId: result[0]?.patientId,
+						error: error instanceof Error ? error.message : String(error),
+						stack: error instanceof Error ? error.stack : undefined,
+					});
+				});
 			}
 			return result[0];
 		}),
@@ -166,11 +173,10 @@ export const medicalRecordsRouter = router({
 				symptoms: z.string().optional(),
 				treatmentRequired: z.boolean().optional(),
 				treatmentDetails: z.string().optional(),
-				treatementCodes: z.string().optional(),
-				treatementDates: z.string().optional(),
-				treatementAmounts: z.string().optional(),
-				diagnossisCodes: z.string().optional(),
-
+				treatmentCodes: z.string().optional(),
+				treatmentDates: z.string().optional(),
+				treatmentAmounts: z.string().optional(),
+				diagnosisCodes: z.string().optional(),
 			})
 		)
 		.mutation(async ({ ctx, input }) => {

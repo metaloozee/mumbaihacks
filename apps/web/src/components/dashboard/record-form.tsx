@@ -20,10 +20,10 @@ type MedicalRecordFormData = {
 	symptoms: string;
 	treatmentRequired: boolean;
 	treatmentDetails: string;
-	diagnossisCodes: string;
-	treatementCodes: string;
-	treatementDates: string;
-	treatementAmounts: string;
+	diagnosisCodes: string;
+	treatmentCodes: string;
+	treatmentDates: string;
+	treatmentAmounts: string;
 };
 
 type MedicalRecordFormProps = {
@@ -51,11 +51,10 @@ export function MedicalRecordForm({
 		symptoms: "",
 		treatmentRequired: false,
 		treatmentDetails: "",
-		diagnossisCodes: "",
-		treatementCodes: "",
-		treatementDates: "",
-		treatementAmounts: "",
-
+		diagnosisCodes: "",
+		treatmentCodes: "",
+		treatmentDates: "",
+		treatmentAmounts: "",
 	});
 	const [patientError, setPatientError] = useState<string>("");
 
@@ -132,15 +131,14 @@ export function MedicalRecordForm({
 					</div>
 
 					<div className="space-y-2">
-						<Label htmlFor="diagnossisCodes">Diagnosis Codes</Label>
+						<Label htmlFor="diagnosisCodes">Diagnosis Codes</Label>
 						<Input
-							id="diagnossisCodes"
-							onChange={(e) => setFormData({ ...formData, diagnossisCodes: e.target.value })}
+							id="diagnosisCodes"
+							onChange={(e) => setFormData({ ...formData, diagnosisCodes: e.target.value })}
 							placeholder="Enter diagnosis codes..."
-							value={formData.diagnossisCodes}
+							value={formData.diagnosisCodes}
 						/>
 					</div>
-
 
 					<div className="space-y-2">
 						<Label htmlFor="notes">Clinical Notes (Optional)</Label>
@@ -234,37 +232,37 @@ export function MedicalRecordForm({
 							value={formData.treatmentDetails}
 						/>
 					</div>
-					
+
 					<div className="space-y-2">
-						<Label htmlFor="treatementCodes">Treatment Codes</Label>
+						<Label htmlFor="treatmentCodes">Treatment Codes</Label>
 						<Input
 							disabled={!formData.treatmentRequired}
-							id="treatementCodes"
-							onChange={(e) => setFormData({ ...formData, treatementCodes: e.target.value })}
+							id="treatmentCodes"
+							onChange={(e) => setFormData({ ...formData, treatmentCodes: e.target.value })}
 							placeholder="Enter treatment codes..."
-							value={formData.treatementCodes}
+							value={formData.treatmentCodes}
 						/>
 					</div>
 
 					<div className="space-y-2">
-						<Label htmlFor="treatementDates">Treatment Dates</Label>
+						<Label htmlFor="treatmentDates">Treatment Dates</Label>
 						<Input
 							disabled={!formData.treatmentRequired}
-							id="treatementDates"
-							onChange={(e) => setFormData({ ...formData, treatementDates: e.target.value })}
+							id="treatmentDates"
+							onChange={(e) => setFormData({ ...formData, treatmentDates: e.target.value })}
 							placeholder="Enter treatment dates..."
-							value={formData.treatementDates}
+							value={formData.treatmentDates}
 						/>
 					</div>
 
 					<div className="space-y-2">
-						<Label htmlFor="treatementAmounts">Treatment Amounts</Label>
+						<Label htmlFor="treatmentAmounts">Treatment Amounts</Label>
 						<Input
 							disabled={!formData.treatmentRequired}
-							id="treatementAmounts"
-							onChange={(e) => setFormData({ ...formData, treatementAmounts: e.target.value })}
+							id="treatmentAmounts"
+							onChange={(e) => setFormData({ ...formData, treatmentAmounts: e.target.value })}
 							placeholder="Enter treatment amounts..."
-							value={formData.treatementAmounts}
+							value={formData.treatmentAmounts}
 						/>
 					</div>
 				</CardContent>

@@ -15,6 +15,13 @@
       "when": 1760875172765,
       "tag": "0001_ordinary_blur",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1761050287059,
+      "tag": "0002_rare_payback",
+      "breakpoints": true
     }
   ]
 }

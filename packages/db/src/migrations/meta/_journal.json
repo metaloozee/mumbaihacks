@@ -8,6 +8,13 @@
       "when": 1760801567095,
       "tag": "0000_hard_annihilus",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1760875172765,
+      "tag": "0001_ordinary_blur",
+      "breakpoints": true
     }
   ]
 }

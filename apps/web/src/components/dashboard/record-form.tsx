@@ -20,6 +20,10 @@ type MedicalRecordFormData = {
 	symptoms: string;
 	treatmentRequired: boolean;
 	treatmentDetails: string;
+	diagnossisCodes: string;
+	treatementCodes: string;
+	treatementDates: string;
+	treatementAmounts: string;
 };
 
 type MedicalRecordFormProps = {
@@ -47,6 +51,11 @@ export function MedicalRecordForm({
 		symptoms: "",
 		treatmentRequired: false,
 		treatmentDetails: "",
+		diagnossisCodes: "",
+		treatementCodes: "",
+		treatementDates: "",
+		treatementAmounts: "",
+
 	});
 	const [patientError, setPatientError] = useState<string>("");
 
@@ -121,6 +130,17 @@ export function MedicalRecordForm({
 							value={formData.diagnosis}
 						/>
 					</div>
+
+					<div className="space-y-2">
+						<Label htmlFor="diagnossisCodes">Diagnosis Codes</Label>
+						<Input
+							id="diagnossisCodes"
+							onChange={(e) => setFormData({ ...formData, diagnossisCodes: e.target.value })}
+							placeholder="Enter diagnosis codes..."
+							value={formData.diagnossisCodes}
+						/>
+					</div>
+
 
 					<div className="space-y-2">
 						<Label htmlFor="notes">Clinical Notes (Optional)</Label>
@@ -212,6 +232,39 @@ export function MedicalRecordForm({
 							onChange={(e) => setFormData({ ...formData, treatmentDetails: e.target.value })}
 							placeholder="Enter treatment details..."
 							value={formData.treatmentDetails}
+						/>
+					</div>
+					
+					<div className="space-y-2">
+						<Label htmlFor="treatementCodes">Treatment Codes</Label>
+						<Input
+							disabled={!formData.treatmentRequired}
+							id="treatementCodes"
+							onChange={(e) => setFormData({ ...formData, treatementCodes: e.target.value })}
+							placeholder="Enter treatment codes..."
+							value={formData.treatementCodes}
+						/>
+					</div>
+
+					<div className="space-y-2">
+						<Label htmlFor="treatementDates">Treatment Dates</Label>
+						<Input
+							disabled={!formData.treatmentRequired}
+							id="treatementDates"
+							onChange={(e) => setFormData({ ...formData, treatementDates: e.target.value })}
+							placeholder="Enter treatment dates..."
+							value={formData.treatementDates}
+						/>
+					</div>
+
+					<div className="space-y-2">
+						<Label htmlFor="treatementAmounts">Treatment Amounts</Label>
+						<Input
+							disabled={!formData.treatmentRequired}
+							id="treatementAmounts"
+							onChange={(e) => setFormData({ ...formData, treatementAmounts: e.target.value })}
+							placeholder="Enter treatment amounts..."
+							value={formData.treatementAmounts}
 						/>
 					</div>
 				</CardContent>

@@ -3,6 +3,7 @@ import { TRPCError } from "@trpc/server";
 import { and, eq, type SQL } from "drizzle-orm";
 import { z } from "zod";
 import { protectedProcedure, router } from "../index";
+import { check_and_generate_claim_autofills } from "../utils";
 
 export const medicalRecordsRouter = router({
 	list: protectedProcedure.query(async ({ ctx }) => {
@@ -104,6 +105,11 @@ export const medicalRecordsRouter = router({
 				symptoms: z.string().optional(),
 				treatmentRequired: z.boolean().default(false),
 				treatmentDetails: z.string().optional(),
+				diagnossisCodes: z.string().optional(),
+				treatementCodes: z.string().optional(),
+				treatementDates: z.string().optional(),
+				treatementAmounts: z.string().optional(),
+				
 			})
 		)
 		.mutation(async ({ ctx, input }) => {
@@ -133,9 +139,16 @@ export const medicalRecordsRouter = router({
 					symptoms: input.symptoms,
 					treatmentRequired: input.treatmentRequired,
 					treatmentDetails: input.treatmentDetails,
+					diagnossisCodes: input.diagnossisCodes,
+					treatementCodes: input.treatementCodes,
+					treatementDates: input.treatementDates,
+					treatementAmounts: input.treatementAmounts,
+
 				})
 				.returning();
-
+			if (result[0]&&result[0].treatmentRequired) {	
+				check_and_generate_claim_autofills(result[0], ctx);
+			}
 			return result[0];
 		}),
 
@@ -153,6 +166,11 @@ export const medicalRecordsRouter = router({
 				symptoms: z.string().optional(),
 				treatmentRequired: z.boolean().optional(),
 				treatmentDetails: z.string().optional(),
+				treatementCodes: z.string().optional(),
+				treatementDates: z.string().optional(),
+				treatementAmounts: z.string().optional(),
+				diagnossisCodes: z.string().optional(),
+
 			})
 		)
 		.mutation(async ({ ctx, input }) => {
